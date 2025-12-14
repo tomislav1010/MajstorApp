@@ -1,0 +1,6 @@
+@MajstorFinder.WebAPI_HostAddress = http://localhost:5254
+
+GET {{MajstorFinder.WebAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
