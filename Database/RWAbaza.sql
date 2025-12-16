@@ -75,3 +75,12 @@ CREATE TABLE Zahtjev (
     CONSTRAINT FK_Zahtjev_VrstaRada
         FOREIGN KEY (VrstaRadaId) REFERENCES VrstaRada(Id)
 );
+
+
+
+CREATE TABLE Log (
+    Id INT IDENTITY PRIMARY KEY,
+    Timestamp DATETIME NOT NULL,
+    Level NVARCHAR(50) NOT NULL,
+    Message NVARCHAR(500) NOT NULL
+);
