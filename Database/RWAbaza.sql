@@ -78,9 +78,29 @@ CREATE TABLE Zahtjev (
 
 
 
-CREATE TABLE Log (
+CREATE TABLE Logs (
     Id INT IDENTITY PRIMARY KEY,
     Timestamp DATETIME NOT NULL,
     Level NVARCHAR(50) NOT NULL,
     Message NVARCHAR(500) NOT NULL
+);
+
+drop table Logs
+
+Select * from Tvrtka
+
+
+
+
+delete  from Tvrtka
+
+
+CREATE TABLE AppUser (
+    Id INT IDENTITY PRIMARY KEY,
+    Username NVARCHAR(50) NOT NULL UNIQUE,
+    Email NVARCHAR(100) NOT NULL UNIQUE,
+    PasswordHash VARBINARY(32) NOT NULL,
+    PasswordSalt VARBINARY(16) NOT NULL,
+    Iterations INT NOT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT GETDATE()
 );

@@ -1,5 +1,9 @@
-﻿using MajstorFinder.WebAPI.Models;
+﻿using MajstorFinder.WebAPI.DTOs.MajstoriApp.WebAPI.Dtos;
+using MajstorFinder.WebAPI.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using MajstorFinder.WebAPI.DTOs;
+
 
 namespace MajstorFinder.WebAPI.Controllers
 {
@@ -32,44 +36,67 @@ namespace MajstorFinder.WebAPI.Controllers
         }
 
 
-
-        [HttpPost]
-        public IActionResult Create(Tvrtka tvrtka)
+        [HttpGet("{id}")]
+        public IActionResult GetById(int id)
         {
-            _context.Tvrtkas.Add(tvrtka);
-            _context.SaveChanges();
+            var tvrtka = _context.Tvrtkas.Find(id);
 
-            _context.Logs.Add(new Log
-            {
-                Timestamp = DateTime.Now,
-                Level = "INFO",
-                Message = $"Tvrtka s id={tvrtka.Id} je stvorena."
-            });
-            _context.SaveChanges();
+            if (tvrtka == null)
+                return NotFound();
 
             return Ok(tvrtka);
         }
 
 
 
-        [HttpPut("{id}")]
-        public IActionResult Update(int id, Tvrtka tvrtka)
+
+        [HttpPost]
+        public IActionResult Create([FromBody] TvrtkaCreateDto dto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var tvrtka = new Tvrtka
         {
-            if (id != tvrtka.Id)
-                return BadRequest();
+            Name = dto.Name,
+            Description = dto.Description,
+            Phone = dto.Phone,
+            Email = dto.Email
+        };
 
-            _context.Tvrtkas.Update(tvrtka);
-            _context.SaveChanges();
+        _context.Tvrtkas.Add(tvrtka);
+        _context.SaveChanges();
 
-            _context.Logs.Add(new Log
-            {
-                Timestamp = DateTime.Now,
-                Level = "INFO",
-                Message = $"Tvrtka s id={id} je ažurirana."
-            });
+         return CreatedAtAction(
+         nameof(GetById),
+         new { id = tvrtka.Id },
+         tvrtka);
+         AddLog("INFO", $"Tvrtka s id={tvrtka.Id} je stvorena.");
+
+        }
+
+
+
+        [HttpPut("{id}")]
+        public IActionResult Update(int id, [FromBody] TvrtkaUpdateDto dto)
+        {
+            if (id != dto.Id)
+                return BadRequest("ID mismatch");
+
+            var tvrtka = _context.Tvrtkas.Find(id);
+            if (tvrtka == null)
+                return NotFound();
+
+            tvrtka.Name = dto.Name;
+            tvrtka.Description = dto.Description;
+            tvrtka.Phone = dto.Phone;
+            tvrtka.Email = dto.Email;
+
             _context.SaveChanges();
 
             return Ok(tvrtka);
+            AddLog("INFO", $"Tvrtka s id={id} je ažurirana.");
+
         }
 
 
@@ -92,6 +119,19 @@ namespace MajstorFinder.WebAPI.Controllers
             _context.SaveChanges();
 
             return NoContent();
+            AddLog("INFO", $"Tvrtka s id={id} je obrisana.");
+
+        }
+
+        private void AddLog(string level, string message)
+        {
+            _context.Logs.Add(new Log
+            {
+                Timestamp = DateTime.UtcNow,
+                Level = level,
+                Message = message
+            });
+            _context.SaveChanges();
         }
     }
 }
