@@ -104,3 +104,8 @@ CREATE TABLE AppUser (
     Iterations INT NOT NULL,
     CreatedAt DATETIME NOT NULL DEFAULT GETDATE()
 );
+
+
+
+ALTER TABLE TvrtkaLokacija
+ADD CONSTRAINT PK_TvrtkaLokacija PRIMARY KEY (TvrtkaId, LokacijaId);
