@@ -15,7 +15,7 @@ public partial class Tvrtka
 
     public string Email { get; set; } = null!;
 
-    public virtual ICollection<VrstaRadum> VrstaRada { get; set; } = new List<VrstaRadum>();
+    public virtual ICollection<VrstaRada> VrstaRadas { get; set; } = new List<VrstaRada>();
 
     public virtual ICollection<Zahtjev> Zahtjevs { get; set; } = new List<Zahtjev>();
 

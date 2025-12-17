@@ -23,5 +23,5 @@ public partial class Zahtjev
 
     public virtual Tvrtka Tvrtka { get; set; } = null!;
 
-    public virtual VrstaRadum VrstaRada { get; set; } = null!;
+    public virtual VrstaRada VrstaRada { get; set; } = null!;
 }

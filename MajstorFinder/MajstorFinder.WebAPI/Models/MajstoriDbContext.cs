@@ -6,6 +6,8 @@ namespace MajstorFinder.WebAPI.Models;
 
 public partial class MajstoriDbContext : DbContext
 {
+    // private DbSet<Lokacija> lokacijas;
+
     public MajstoriDbContext()
     {
     }
@@ -15,25 +17,15 @@ public partial class MajstoriDbContext : DbContext
     {
     }
 
-    public virtual DbSet<Korisnik> Korisniks { get; set; }
+    public virtual DbSet<Korisnik> Korisniks { get; set; } = null!;
+    public virtual DbSet<Lokacija> Lokacijas { get; set; } = null!;
+    public virtual DbSet<Tvrtka> Tvrtkas { get; set; } = null!;
+    public virtual DbSet<VrstaRada> VrstaRadas { get; set; } = null!;
+    public virtual DbSet<Zahtjev> Zahtjevs { get; set; } = null!;
 
-    public virtual DbSet<Lokacija> Lokacijas { get; set; }
-
-    public virtual DbSet<Tvrtka> Tvrtkas { get; set; }
-
-    public virtual DbSet<VrstaRadum> VrstaRada { get; set; }
-
-    public virtual DbSet<Zahtjev> Zahtjevs { get; set; }
-
-    public DbSet<Log> Logs { get; set; }
-
-    public DbSet<AppUser> AppUsers { get; set; }
-
-
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=.;Database=RWA;Trusted_Connection=True;TrustServerCertificate=True;Encrypt=False");
+    // Manually added entities (not scaffolded)
+    public DbSet<Log> Logs { get; set; } = null!;
+    public DbSet<AppUser> AppUsers { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -74,6 +66,7 @@ public partial class MajstoriDbContext : DbContext
             entity.Property(e => e.Name).HasMaxLength(100);
             entity.Property(e => e.Phone).HasMaxLength(50);
 
+            // M:N Tvrtka <-> Lokacija through table TvrtkaLokacija
             entity.HasMany(d => d.Lokacijas).WithMany(p => p.Tvrtkas)
                 .UsingEntity<Dictionary<string, object>>(
                     "TvrtkaLokacija",
@@ -90,13 +83,14 @@ public partial class MajstoriDbContext : DbContext
                     });
         });
 
-        modelBuilder.Entity<VrstaRadum>(entity =>
+        modelBuilder.Entity<VrstaRada>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__VrstaRad__3214EC079E864058");
 
+            entity.ToTable("VrstaRada");
             entity.Property(e => e.Name).HasMaxLength(100);
 
-            entity.HasOne(d => d.Tvrtka).WithMany(p => p.VrstaRada)
+            entity.HasOne(d => d.Tvrtka).WithMany(p => p.VrstaRadas)
                 .HasForeignKey(d => d.TvrtkaId)
                 .HasConstraintName("FK_VrstaRada_Tvrtka");
         });
@@ -127,6 +121,30 @@ public partial class MajstoriDbContext : DbContext
                 .HasForeignKey(d => d.VrstaRadaId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Zahtjev_VrstaRada");
+        });
+
+        // Manual tables mapping
+        modelBuilder.Entity<Log>(entity =>
+        {
+            entity.ToTable("Log");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Level).HasMaxLength(50);
+            entity.Property(e => e.Message).HasMaxLength(500);
+            entity.Property(e => e.Timestamp).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<AppUser>(entity =>
+        {
+            entity.ToTable("AppUser");
+            entity.HasKey(e => e.Id);
+
+            entity.HasIndex(e => e.Username).IsUnique();
+            entity.HasIndex(e => e.Email).IsUnique();
+
+            entity.Property(e => e.Username).HasMaxLength(50);
+            entity.Property(e => e.Email).HasMaxLength(100);
+            entity.Property(e => e.PasswordHash).HasMaxLength(200);
+           // entity.Property(e => e.Role).HasMaxLength(20);
         });
 
         OnModelCreatingPartial(modelBuilder);

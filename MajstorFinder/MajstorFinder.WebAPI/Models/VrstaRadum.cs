@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace MajstorFinder.WebAPI.Models;
 
-public partial class VrstaRadum
+public partial class VrstaRada
 {
     public int Id { get; set; }
 
