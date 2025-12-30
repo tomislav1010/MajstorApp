@@ -126,7 +126,7 @@ public partial class MajstoriDbContext : DbContext
         // Manual tables mapping
         modelBuilder.Entity<Log>(entity =>
         {
-            entity.ToTable("Log");
+            entity.ToTable("Logs");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Level).HasMaxLength(50);
             entity.Property(e => e.Message).HasMaxLength(500);

@@ -123,6 +123,32 @@ namespace MajstorFinder.WebAPI.Controllers
 
         }
 
+        [HttpGet("{id}/lokacije")]
+        public IActionResult GetLokacijeForTvrtka(int id)
+        {
+            var tvrtka = _context.Tvrtkas
+                .Include(t => t.Lokacijas)
+                .SingleOrDefault(t => t.Id == id);
+
+            if (tvrtka == null) return NotFound();
+
+            return Ok(tvrtka.Lokacijas.Select(l => new { l.Id, l.Name }));
+        }
+
+
+        [HttpGet("{id}/vrsterada")]
+        public IActionResult GetVrsteRadaForTvrtka(int id)
+        {
+            if (!_context.Tvrtkas.Any(t => t.Id == id)) return NotFound();
+
+            var vrste = _context.VrstaRadas
+                .Where(v => v.TvrtkaId == id)
+                .Select(v => new { v.Id, v.Name, v.TvrtkaId })
+                .ToList();
+
+            return Ok(vrste);
+        }
+
         private void AddLog(string level, string message)
         {
             _context.Logs.Add(new Log
