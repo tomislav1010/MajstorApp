@@ -1,0 +1,25 @@
+﻿@model LoginViewModel
+
+<h2>Login</h2>
+
+<form method="post">
+    <div>
+        <label>Email</label>
+        <input asp-for="Email" />
+        <span asp-validation-for="Email"></span>
+    </div>
+
+    <div>
+        <label>Lozinka</label>
+        <input asp-for="Password" type="password" />
+        <span asp-validation-for="Password"></span>
+    </div>
+
+    <button type="submit">Login</button>
+
+    <div asp-validation-summary="All"></div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
