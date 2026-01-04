@@ -1,0 +1,52 @@
+﻿@model List<VrstaRadaVm>
+@{
+    var tvrtke = (List<TvrtkaVm>)ViewBag.Tvrtke;
+    int? selected = ViewBag.SelectedTvrtkaId as int?;
+}
+
+<h2>Vrste rada</h2>
+
+@if (TempData["Err"] != null)
+{
+    <p style="color:red">@TempData["Err"]</p>
+}
+
+<form method="get">
+    <label>Filter po tvrtki:</label>
+    <select name="tvrtkaId">
+        <option value="">-- sve --</option>
+        @foreach (var t in tvrtke)
+        {
+            <option value="@t.Id" selected="@(selected == t.Id)">
+                @t.Name
+            </option>
+        }
+    </select>
+    <button type="submit">Primijeni</button>
+    <a asp-action="Create">+ Nova vrsta rada</a>
+</form>
+
+<table>
+    <thead>
+        <tr>
+            <th>Naziv</th>
+            <th>Tvrtka</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var v in Model)
+        {
+            <tr>
+                <td>@v.Name</td>
+                <td>@v.TvrtkaName</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@v.Id">Uredi</a>
+                    <form asp-action="Delete" asp-route-id="@v.Id" method="post" style="display:inline">
+                        <button type="submit" onclick="return confirm('Obrisati?')">Obriši</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

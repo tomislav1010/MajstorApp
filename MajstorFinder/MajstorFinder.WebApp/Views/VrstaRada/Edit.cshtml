@@ -1,0 +1,37 @@
+﻿@model VrstaRadaVm
+@{
+    var tvrtke = (List<TvrtkaVm>)ViewBag.Tvrtke;
+    int? selected = ViewBag.SelectedTvrtkaId as int?;
+}
+
+<h2>Uredi vrstu rada</h2>
+
+<form method="post">
+    <input type="hidden" asp-for="Id" />
+
+    <div>
+        <label>Naziv</label>
+        <input asp-for="Name" />
+        <span asp-validation-for="Name"></span>
+    </div>
+
+    <div>
+        <label>Tvrtka</label>
+        <select asp-for="TvrtkaId">
+            @foreach (var t in tvrtke)
+            {
+                <option value="@t.Id" selected="@(selected == t.Id)">@t.Name</option>
+            }
+        </select>
+        <span asp-validation-for="TvrtkaId"></span>
+    </div>
+
+    <button type="submit">Spremi</button>
+    <a asp-action="Index">Nazad</a>
+
+    <div asp-validation-summary="All"></div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
