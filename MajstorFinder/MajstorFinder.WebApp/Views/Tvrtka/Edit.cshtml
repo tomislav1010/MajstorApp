@@ -1,0 +1,38 @@
+﻿@model TvrtkaVm
+
+<h2>Uredi tvrtku</h2>
+
+<form method="post">
+    <input type="hidden" asp-for="Id" />
+
+    <div>
+        <label>Naziv</label>
+        <input asp-for="Name" />
+        <span asp-validation-for="Name"></span>
+    </div>
+
+    <div>
+        <label>Opis</label>
+        <textarea asp-for="Description"></textarea>
+    </div>
+
+    <div>
+        <label>Telefon</label>
+        <input asp-for="Phone" />
+    </div>
+
+    <div>
+        <label>Email</label>
+        <input asp-for="Email" />
+        <span asp-validation-for="Email"></span>
+    </div>
+
+    <button type="submit">Spremi</button>
+    <a asp-action="Index">Nazad</a>
+
+    <div asp-validation-summary="All"></div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

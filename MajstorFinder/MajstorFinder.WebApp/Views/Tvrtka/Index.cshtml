@@ -1,0 +1,42 @@
+﻿@model List<TvrtkaVm>
+
+<h2>Tvrtke</h2>
+
+@if (TempData["Err"] != null)
+{
+    <p style="color:red">@TempData["Err"]</p>
+}
+
+<form method="get">
+    <input name="q" value="@ViewBag.Q" placeholder="Pretraži po nazivu..." />
+    <button type="submit">Traži</button>
+    <a asp-action="Create">+ Nova tvrtka</a>
+</form>
+
+<table>
+    <thead>
+        <tr>
+            <th>Naziv</th>
+            <th>Email</th>
+            <th>Telefon</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var t in Model)
+        {
+            <tr>
+                <td>@t.Name</td>
+                <td>@t.Email</td>
+                <td>@t.Phone</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@t.Id">Uredi</a>
+
+                    <form asp-action="Delete" asp-route-id="@t.Id" method="post" style="display:inline">
+                        <button type="submit" onclick="return confirm('Obrisati?')">Obriši</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>S
