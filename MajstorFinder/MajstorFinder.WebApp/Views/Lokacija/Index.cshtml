@@ -1,0 +1,32 @@
+﻿@model List<LokacijaVm>
+
+<h2>Lokacije</h2>
+
+@if (TempData["Err"] != null)
+{
+    <p style="color:red">@TempData["Err"]</p>
+}
+
+<form method="get">
+    <input name="q" value="@ViewBag.Q" placeholder="Pretraži..." />
+    <button type="submit">Traži</button>
+    <a asp-action="Create">+ Nova lokacija</a>
+</form>
+
+<table>
+    <thead><tr><th>Naziv</th><th></th></tr></thead>
+    <tbody>
+        @foreach (var l in Model)
+        {
+            <tr>
+                <td>@l.Name</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@l.Id">Uredi</a>
+                    <form asp-action="Delete" asp-route-id="@l.Id" method="post" style="display:inline">
+                        <button type="submit" onclick="return confirm('Obrisati?')">Obriši</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

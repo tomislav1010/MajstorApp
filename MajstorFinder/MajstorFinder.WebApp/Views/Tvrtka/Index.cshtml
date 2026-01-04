@@ -31,6 +31,7 @@
                 <td>@t.Phone</td>
                 <td>
                     <a asp-action="Edit" asp-route-id="@t.Id">Uredi</a>
+                    <a asp-action="Lokacije" asp-route-id="@t.Id">Lokacije</a>
 
                     <form asp-action="Delete" asp-route-id="@t.Id" method="post" style="display:inline">
                         <button type="submit" onclick="return confirm('Obrisati?')">Obriši</button>

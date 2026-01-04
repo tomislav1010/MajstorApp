@@ -114,5 +114,58 @@ namespace MajstorFinder.WebApp.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+
+        [HttpGet]
+        public async Task<IActionResult> Lokacije(int id)
+        {
+            var jwt = HttpContext.Session.GetString("jwt");
+            var client = ApiClientFactory.CreateWithJwt(_factory, jwt);
+
+            var tvrtka = await client.GetFromJsonAsync<TvrtkaVm>($"/api/Tvrtka/{id}");
+            if (tvrtka == null) return NotFound();
+
+            var sveLokacije = await client.GetFromJsonAsync<List<LokacijaVm>>("/api/Lokacija") ?? new();
+            var postojece = await client.GetFromJsonAsync<List<LokacijaVm>>($"/api/Tvrtka/{id}/lokacije") ?? new();
+
+            var set = postojece.Select(x => x.Id).ToHashSet();
+
+            var vm = new TvrtkaLokacijeVm
+            {
+                TvrtkaId = tvrtka.Id,
+                TvrtkaName = tvrtka.Name,
+                Lokacije = sveLokacije.Select(l => new LokacijaCheckVm
+                {
+                    Id = l.Id,
+                    Name = l.Name,
+                    Selected = set.Contains(l.Id)
+                }).ToList()
+            };
+
+            return View(vm);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Lokacije(TvrtkaLokacijeVm model)
+        {
+            var jwt = HttpContext.Session.GetString("jwt");
+            var client = ApiClientFactory.CreateWithJwt(_factory, jwt);
+
+            // current from API
+            var postojece = await client.GetFromJsonAsync<List<LokacijaVm>>($"/api/Tvrtka/{model.TvrtkaId}/lokacije") ?? new();
+            var current = postojece.Select(x => x.Id).ToHashSet();
+
+            var desired = model.Lokacije.Where(x => x.Selected).Select(x => x.Id).ToHashSet();
+
+            // add new links
+            foreach (var lokId in desired.Except(current))
+                await client.PostAsync($"/api/tvrtka-lokacija?tvrtkaId={model.TvrtkaId}&lokacijaId={lokId}", null);
+
+            // remove unchecked
+            foreach (var lokId in current.Except(desired))
+                await client.DeleteAsync($"/api/tvrtka-lokacija?tvrtkaId={model.TvrtkaId}&lokacijaId={lokId}");
+
+            return RedirectToAction("Index");
+        }
     }
 }

@@ -1,6 +1,6 @@
-﻿@model TvrtkaVm
+﻿@model LokacijaVm
 
-<h2>Nova tvrtka</h2>
+<h2>Nova lokacija</h2>
 
 <form method="post">
     <div>
@@ -8,7 +8,6 @@
         <input asp-for="Name" />
         <span asp-validation-for="Name"></span>
     </div>
-
 
     <button type="submit">Spremi</button>
     <a asp-action="Index">Nazad</a>

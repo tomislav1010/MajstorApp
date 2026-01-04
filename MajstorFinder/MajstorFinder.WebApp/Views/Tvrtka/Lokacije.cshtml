@@ -1,0 +1,25 @@
+﻿@model TvrtkaLokacijeVm
+
+<h2>Lokacije za: @Model.TvrtkaName</h2>
+
+<form method="post">
+    <input type="hidden" asp-for="TvrtkaId" />
+    <input type="hidden" asp-for="TvrtkaName" />
+
+    <ul style="list-style:none; padding-left:0;">
+        @for (int i = 0; i < Model.Lokacije.Count; i++)
+        {
+            <li>
+                <input type="hidden" asp-for="Lokacije[@i].Id" />
+                <input type="hidden" asp-for="Lokacije[@i].Name" />
+                <label>
+                    <input asp-for="Lokacije[@i].Selected" />
+                    @Model.Lokacije[i].Name
+                </label>
+            </li>
+        }
+    </ul>
+
+    <button type="submit">Spremi</button>
+    <a asp-action="Index">Nazad</a>
+</form>
