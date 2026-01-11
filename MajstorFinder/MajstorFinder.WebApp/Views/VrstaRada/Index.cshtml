@@ -12,18 +12,18 @@
 }
 
 <form method="get">
+    <input type="hidden" name="q" value="@ViewBag.Q" />
+
     <label>Filter po tvrtki:</label>
     <select name="tvrtkaId">
         <option value="">-- sve --</option>
         @foreach (var t in tvrtke)
         {
-            <option value="@t.Id" selected="@(selected == t.Id)">
-                @t.Name
-            </option>
+            <option value="@t.Id" selected="@(selected == t.Id)">@t.Name</option>
         }
     </select>
+
     <button type="submit">Primijeni</button>
-    <a asp-action="Create">+ Nova vrsta rada</a>
 </form>
 
 <table>

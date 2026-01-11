@@ -137,12 +137,21 @@ namespace MajstorFinder.WebApp.Controllers
         }
 
 
-        public async Task<IActionResult> Index(string? q, int page = 1, int pageSize = 5)
+        public async Task<IActionResult> Index(int? tvrtkaId, string? q, int page = 1, int pageSize = 5)
         {
             var jwt = HttpContext.Session.GetString("jwt");
             var client = ApiClientFactory.CreateWithJwt(_factory, jwt);
 
+            // 1) tvrtke za dropdown
+            var tvrtke = await client.GetFromJsonAsync<List<TvrtkaVm>>("/api/Tvrtka") ?? new();
+            ViewBag.Tvrtke = tvrtke;
+            ViewBag.SelectedTvrtkaId = tvrtkaId;
+
+            // 2) vrste rada
             var list = await client.GetFromJsonAsync<List<VrstaRadaVm>>("/api/VrstaRada") ?? new();
+
+            if (tvrtkaId.HasValue)
+                list = list.Where(x => x.TvrtkaId == tvrtkaId.Value).ToList();
 
             if (!string.IsNullOrWhiteSpace(q))
                 list = list.Where(x => x.Name.Contains(q, StringComparison.OrdinalIgnoreCase)).ToList();
