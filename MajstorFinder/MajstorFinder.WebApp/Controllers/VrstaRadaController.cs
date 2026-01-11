@@ -53,7 +53,7 @@ namespace MajstorFinder.WebApp.Controllers
         {
             if (!ModelState.IsValid)
             {
-                await LoadTvrtke();
+                await LoadTvrtke(model.TvrtkaId);
                 return View(model);
             }
 

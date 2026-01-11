@@ -6,13 +6,13 @@ namespace MajstorFinder.WebApp.Models
     {
         public int Id { get; set; }
 
-        [Required, MaxLength(100)]
+        [Required(ErrorMessage = "Naziv je obavezan.")]
+        [StringLength(100, ErrorMessage = "Naziv može imati max 100 znakova.")]
         public string Name { get; set; } = "";
 
-        [Required]
+        [Required(ErrorMessage = "Tvrtka je obavezna.")]
         public int TvrtkaId { get; set; }
 
-        // samo za prikaz u listi
         public string? TvrtkaName { get; set; }
     }
 }

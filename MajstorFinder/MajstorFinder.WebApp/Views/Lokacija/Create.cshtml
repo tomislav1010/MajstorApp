@@ -3,6 +3,8 @@
 <h2>Nova lokacija</h2>
 
 <form method="post">
+    <div asp-validation-summary="All"></div>
+
     <div>
         <label>Naziv</label>
         <input asp-for="Name" />
@@ -11,8 +13,6 @@
 
     <button type="submit">Spremi</button>
     <a asp-action="Index">Nazad</a>
-
-    <div asp-validation-summary="All"></div>
 </form>
 
 @section Scripts {

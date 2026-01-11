@@ -1,8 +1,10 @@
 ﻿@model LokacijaVm
 
-<h2>Uredi Lokaciju</h2>
+<h2>Uredi lokaciju</h2>
 
 <form method="post">
+    <div asp-validation-summary="All"></div>
+
     <input type="hidden" asp-for="Id" />
 
     <div>
@@ -13,8 +15,6 @@
 
     <button type="submit">Spremi</button>
     <a asp-action="Index">Nazad</a>
-
-    <div asp-validation-summary="All"></div>
 </form>
 
 @section Scripts {
