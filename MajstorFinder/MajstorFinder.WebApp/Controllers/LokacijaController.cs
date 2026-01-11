@@ -15,7 +15,7 @@ namespace MajstorFinder.WebApp.Controllers
             return ApiClientFactory.CreateWithJwt(_factory, jwt);
         }
 
-        public async Task<IActionResult> Index(string? q)
+        /*public async Task<IActionResult> Index(string? q)
         {
             var client = Api();
             var lokacije = await client.GetFromJsonAsync<List<LokacijaVm>>("/api/Lokacija") ?? new();
@@ -25,7 +25,7 @@ namespace MajstorFinder.WebApp.Controllers
 
             ViewBag.Q = q ?? "";
             return View(lokacije);
-        }
+        }*/
 
         [HttpGet]
         public IActionResult Create() => View(new LokacijaVm());
@@ -84,6 +84,27 @@ namespace MajstorFinder.WebApp.Controllers
                 TempData["Err"] = "Ne mogu obrisati lokaciju (možda je vezana uz tvrtke).";
 
             return RedirectToAction(nameof(Index));
+        }
+
+
+        public async Task<IActionResult> Index(string? q, int page = 1, int pageSize = 5)
+        {
+            var jwt = HttpContext.Session.GetString("jwt");
+            var client = ApiClientFactory.CreateWithJwt(_factory, jwt);
+
+            var list = await client.GetFromJsonAsync<List<LokacijaVm>>("/api/Lokacija") ?? new();
+
+            if (!string.IsNullOrWhiteSpace(q))
+                list = list.Where(x => x.Name.Contains(q, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            var total = list.Count;
+            var items = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+            ViewBag.Page = page;
+            ViewBag.TotalPages = (int)Math.Ceiling(total / (double)pageSize);
+            ViewBag.Q = q ?? "";
+
+            return View(items);
         }
     }
 }

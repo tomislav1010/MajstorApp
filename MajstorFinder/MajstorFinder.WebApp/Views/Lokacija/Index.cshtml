@@ -30,3 +30,23 @@
         }
     </tbody>
 </table>
+
+@{
+    int page = ViewBag.Page;
+    int totalPages = ViewBag.TotalPages;
+    string q = ViewBag.Q;
+}
+
+<div>
+    @if (page > 1)
+    {
+        <a asp-action="Index" asp-route-page="@(page - 1)" asp-route-q="@q">← Prethodna</a>
+    }
+
+    <span> Stranica  / @totalPages </span>
+
+    @if (page < totalPages)
+    {
+        <a asp-action="Index" asp-route-page="@(page + 1)" asp-route-q="@q">Sljedeća →</a>
+    }
+</div>

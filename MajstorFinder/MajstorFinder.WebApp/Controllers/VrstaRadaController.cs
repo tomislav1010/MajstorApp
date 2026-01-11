@@ -16,7 +16,7 @@ namespace MajstorFinder.WebApp.Controllers
         }
 
         // LIST
-        public async Task<IActionResult> Index(int? tvrtkaId)
+       /* public async Task<IActionResult> Index(int? tvrtkaId)
         {
             var client = Api();
 
@@ -39,7 +39,7 @@ namespace MajstorFinder.WebApp.Controllers
 
             return View(vrste);
         }
-
+       */
         // CREATE
         [HttpGet]
         public async Task<IActionResult> Create()
@@ -134,6 +134,27 @@ namespace MajstorFinder.WebApp.Controllers
             var tvrtke = await client.GetFromJsonAsync<List<TvrtkaVm>>("/api/Tvrtka") ?? new List<TvrtkaVm>();
             ViewBag.Tvrtke = tvrtke;
             ViewBag.SelectedTvrtkaId = selectedId;
+        }
+
+
+        public async Task<IActionResult> Index(string? q, int page = 1, int pageSize = 5)
+        {
+            var jwt = HttpContext.Session.GetString("jwt");
+            var client = ApiClientFactory.CreateWithJwt(_factory, jwt);
+
+            var list = await client.GetFromJsonAsync<List<VrstaRadaVm>>("/api/VrstaRada") ?? new();
+
+            if (!string.IsNullOrWhiteSpace(q))
+                list = list.Where(x => x.Name.Contains(q, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            var total = list.Count;
+            var items = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+            ViewBag.Page = page;
+            ViewBag.TotalPages = (int)Math.Ceiling(total / (double)pageSize);
+            ViewBag.Q = q ?? "";
+
+            return View(items);
         }
     }
 }
