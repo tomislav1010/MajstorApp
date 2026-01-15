@@ -29,7 +29,7 @@
     <tbody>
 @foreach (var t in Model)
 {
-        <tr>
+        <tr id="row-@t.Id">>
             <td>@t.Name</td>
             <td>@t.Email</td>
             <td>@t.Phone</td>
@@ -38,9 +38,10 @@
                 <a class="btn btn-sm btn-outline-secondary" asp-action="Lokacije" asp-route-id="@t.Id">Lokacije</a>
 
                 <form asp-action="Delete" asp-route-id="@t.Id" method="post" class="d-inline">
-                    <button class="btn btn-sm btn-outline-danger" type="submit"
-                            onclick="return confirm('Obrisati?')">
-                        Obriši
+                    <button type="button"
+                      class="btn btn-sm btn-outline-danger btn-delete"
+                           data-id="@t.Id">
+                                    Obriši
                     </button>
                 </form>
             </td>
@@ -74,3 +75,25 @@
         }
     </div>
 </nav>
+
+@section Scripts {
+<script>
+document.querySelectorAll(".btn-delete").forEach(btn => {
+    btn.addEventListener("click", async () => {
+        const id = btn.dataset.id;
+        if (!confirm("Obrisati?")) return;
+
+        const res = await fetch(`/Tvrtka/DeleteAjax/${id}`, {
+            method: "DELETE"
+        });
+
+        if (res.ok) {
+            document.getElementById(`row-${id}`)?.remove();
+        } else {
+            const txt = await res.text();
+            alert("Greška: " + txt);
+        }
+    });
+});
+</script>
+}

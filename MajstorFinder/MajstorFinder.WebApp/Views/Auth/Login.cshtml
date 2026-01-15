@@ -1,24 +1,224 @@
 ﻿@model LoginViewModel
 
-<h2>Login</h2>
 
-<form method="post">
-    <div>
-        <label>Email</label>
-        <input asp-for="Email" />
-        <span asp-validation-for="Email"></span>
+@{
+    Layout = null;
+}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    /* Ne diramo globalni body iz Layouta previše, ali ga ovdje stiliziramo za login stranicu */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .login-container {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        width: 100%;
+        max-width: 520px; /* bilo 440px */
+        padding: 48px 40px;
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+        .login-header h2 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+
+        .login-header p {
+            color: #6b7280;
+            font-size: 15px;
+        }
+
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+    .input-wrapper {
+        position: relative;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 15px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        background: #f9fafb;
+    }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+    .validation-error {
+        display: block;
+        color: #ef4444;
+        font-size: 13px;
+        margin-top: 6px;
+        font-weight: 500;
+    }
+
+    .btn-login {
+        width: 100%;
+        padding: 14px;
+        font-size: 16px;
+        font-weight: 600;
+        color: white;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 8px;
+    }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+    .validation-summary {
+        margin-top: 20px;
+        padding: 12px 16px;
+        background: #fef2f2;
+        border-left: 4px solid #ef4444;
+        border-radius: 6px;
+    }
+
+        .validation-summary ul {
+            list-style: none;
+            color: #dc2626;
+            font-size: 14px;
+            line-height: 1.6;
+            padding-left: 0;
+            margin: 0;
+        }
+
+    .divider {
+        display: flex;
+        align-items: center;
+        margin: 32px 0;
+        color: #9ca3af;
+        font-size: 14px;
+    }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e5e7eb;
+        }
+
+        .divider span {
+            padding: 0 16px;
+        }
+
+    .secondary-actions {
+        text-align: center;
+        margin-top: 24px;
+    }
+
+        .secondary-actions a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+            .secondary-actions a:hover {
+                color: #764ba2;
+                text-decoration: underline;
+            }
+
+    @@media (max-width: 480px) {
+        .login-container {
+            padding: 32px 24px;
+        }
+
+        .login-header h2 {
+            font-size: 28px;
+        }
+    }
+</style>
+
+<div class="login-container">
+    <div class="login-header">
+        <h2>Welcome Back</h2>
+        <p>Sign in to continue to your account</p>
     </div>
 
-    <div>
-        <label>Lozinka</label>
-        <input asp-for="Password" type="password" />
-        <span asp-validation-for="Password"></span>
+    <form method="post">
+        <div class="form-group">
+            <label asp-for="Email">Email Address</label>
+            <div class="input-wrapper">
+                <input asp-for="Email" type="email" placeholder="your@email.com" />
+            </div>
+            <span asp-validation-for="Email" class="validation-error"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Password">Password</label>
+            <div class="input-wrapper">
+                <input asp-for="Password" type="password" placeholder="Enter your password" />
+            </div>
+            <span asp-validation-for="Password" class="validation-error"></span>
+        </div>
+
+        <button type="submit" class="btn-login">Sign In</button>
+
+        <div asp-validation-summary="All" class="validation-summary"></div>
+    </form>
+
+    <div class="secondary-actions">
+        <a href="#">Forgot your password?</a>
     </div>
 
-    <button type="submit">Login</button>
+    <div class="divider">
+        <span>or</span>
+    </div>
 
-    <div asp-validation-summary="All"></div>
-</form>
+    <div class="secondary-actions">
+        <span style="color: #6b7280; font-size: 14px;">Don't have an account? </span>
+        <a href="#">Sign up</a>
+    </div>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

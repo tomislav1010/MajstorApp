@@ -1,25 +1,326 @@
 ﻿@model LoginViewModel
 
-<h2>Admin Login</h2>
-
-<form method="post">
-    <div>
-        <label>Email</label>
-        <input asp-for="Email" />
-        <span asp-validation-for="Email"></span>
-    </div>
-
-    <div>
-        <label>Lozinka</label>
-        <input asp-for="Password" type="password" />
-        <span asp-validation-for="Password"></span>
-    </div>
-
-    <button type="submit">Login</button>
-
-    <div asp-validation-summary="All"></div>
-</form>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+@{
+    ViewData["Title"] = "Admin Login";
+    Layout = null;
 }
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+            body::before {
+                content: '';
+                position: absolute;
+                top: -50%;
+                right: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(circle, rgba(248, 113, 113, 0.1) 0%, transparent 70%);
+                animation: pulse 15s ease-in-out infinite;
+            }
+
+        @@keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 520px; /* malo prosireno (bilo 440px) */
+            padding: 48px 40px;
+            position: relative;
+            z-index: 1;
+            border: 1px solid rgba(248, 113, 113, 0.2);
+        }
+
+        .admin-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 24px;
+        }
+
+            .admin-badge::before {
+                content: '⚡';
+                font-size: 14px;
+            }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+            .login-header h2 {
+                font-size: 32px;
+                font-weight: 700;
+                color: #1a1a1a;
+                margin-bottom: 8px;
+            }
+
+            .login-header p {
+                color: #6b7280;
+                font-size: 15px;
+            }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+            .form-group label {
+                display: block;
+                font-size: 14px;
+                font-weight: 600;
+                color: #374151;
+                margin-bottom: 8px;
+            }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            background: #f9fafb;
+        }
+
+            .form-group input:focus {
+                outline: none;
+                border-color: #dc2626;
+                background: white;
+                box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+            }
+
+        .text-danger {
+            display: block;
+            color: #ef4444;
+            font-size: 13px;
+            margin-top: 6px;
+            font-weight: 500;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .btn-login::before {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 0;
+                height: 0;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.2);
+                transform: translate(-50%, -50%);
+                transition: width 0.6s, height 0.6s;
+            }
+
+            .btn-login:hover::before {
+                width: 300px;
+                height: 300px;
+            }
+
+            .btn-login:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 20px rgba(220, 38, 38, 0.4);
+            }
+
+            .btn-login:active {
+                transform: translateY(0);
+            }
+
+        .validation-summary-errors {
+            margin-top: 20px;
+            padding: 12px 16px;
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+            border-radius: 6px;
+        }
+
+            .validation-summary-errors ul {
+                list-style: none;
+                color: #dc2626;
+                font-size: 14px;
+                line-height: 1.6;
+                margin: 0;
+                padding: 0;
+            }
+
+            .validation-summary-errors li {
+                margin-bottom: 4px;
+            }
+
+        .security-note {
+            margin-top: 24px;
+            padding: 12px;
+            background: #fff7ed;
+            border-left: 4px solid #f59e0b;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #92400e;
+            line-height: 1.5;
+        }
+
+            .security-note strong {
+                display: block;
+                margin-bottom: 4px;
+                color: #78350f;
+            }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 32px 0;
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+            .divider::before,
+            .divider::after {
+                content: '';
+                flex: 1;
+                height: 1px;
+                background: #e5e7eb;
+            }
+
+            .divider span {
+                padding: 0 16px;
+            }
+
+        .secondary-actions {
+            text-align: center;
+            margin-top: 24px;
+        }
+
+            .secondary-actions a {
+                color: #dc2626;
+                text-decoration: none;
+                font-size: 14px;
+                font-weight: 500;
+                transition: color 0.3s ease;
+            }
+
+                .secondary-actions a:hover {
+                    color: #991b1b;
+                    text-decoration: underline;
+                }
+
+        @@media (max-width: 480px) {
+            .login-container {
+                padding: 32px 24px;
+            }
+
+            .login-header h2 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div style="text-align: center;">
+            <div class="admin-badge">Admin Pristup</div>
+        </div>
+
+        <div class="login-header">
+            <h2>Admin Panel</h2>
+            <p>Pristup samo za administratore</p>
+        </div>
+
+        <form method="post">
+            <div class="form-group">
+                <label asp-for="Email">Email</label>
+                <div class="input-wrapper">
+                    <input asp-for="Email" type="email" class="form-control" placeholder="admin@email.com" />
+                </div>
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Password">Lozinka</label>
+                <div class="input-wrapper">
+                    <input asp-for="Password" type="password" class="form-control" placeholder="Unesite admin lozinku" />
+                </div>
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn-login">Prijavi se kao Admin</button>
+
+            <div asp-validation-summary="All" class="text-danger validation-summary-errors"></div>
+        </form>
+
+        <div class="security-note">
+            <strong>🔒 Sigurnosna napomena</strong>
+            Ova stranica je namenjena isključivo administratorima sistema. Sve aktivnosti se loguju.
+        </div>
+
+        <div class="divider">
+            <span>ili</span>
+        </div>
+
+        <div class="secondary-actions">
+            <a href="#">← Vrati se na korisničku prijavu</a>
+        </div>
+    </div>
+
+    <partial name="_ValidationScriptsPartial" />
+</body>
+</html>

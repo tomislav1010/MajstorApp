@@ -35,7 +35,10 @@ namespace MajstorFinder.WebApp.Controllers
 
             return RedirectToAction("Index", "Home");
         }
-
+        public IActionResult AdminLoginPreview()
+        {
+            return View("Auth");
+        }
         public IActionResult Logout()
         {
             HttpContext.Session.Remove("jwt");
