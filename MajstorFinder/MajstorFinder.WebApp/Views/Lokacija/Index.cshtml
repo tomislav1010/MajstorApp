@@ -18,13 +18,16 @@
     <tbody>
         @foreach (var l in Model)
         {
-            <tr>
+            <tr id="row-@l.Id">
                 <td>@l.Name</td>
                 <td>
                     <a asp-action="Edit" asp-route-id="@l.Id">Uredi</a>
-                    <form asp-action="Delete" asp-route-id="@l.Id" method="post" style="display:inline">
-                        <button type="submit" onclick="return confirm('Obrisati?')">Obriši</button>
-                    </form>
+
+                    <button type="button"
+                            class="btn-delete"
+                            data-id="@l.Id">
+                        Obriši
+                    </button>
                 </td>
             </tr>
         }
@@ -43,10 +46,26 @@
         <a asp-action="Index" asp-route-page="@(page - 1)" asp-route-q="@q">← Prethodna</a>
     }
 
-    <span> Stranica  / @totalPages </span>
-
+<span>Stranica @@page / @totalPages</span>
     @if (page < totalPages)
     {
         <a asp-action="Index" asp-route-page="@(page + 1)" asp-route-q="@q">Sljedeća →</a>
     }
 </div>
+
+
+@section Scripts {
+    <script>
+        document.querySelectorAll(".btn-delete").forEach(btn => {
+            btn.addEventListener("click", async () => {
+                const id = btn.dataset.id;
+                if (!confirm("Obrisati?")) return;
+
+                const res = await fetch(`/Lokacija/DeleteAjax/${id}`, { method: "DELETE" });
+
+                if (res.ok) document.getElementById(`row-${id}`)?.remove();
+                else alert("Greška: " + await res.text());
+            });
+        });
+    </script>
+}

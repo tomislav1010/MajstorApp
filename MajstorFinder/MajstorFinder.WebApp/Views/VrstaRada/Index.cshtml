@@ -12,8 +12,6 @@
 }
 
 <form method="get">
-    <input type="hidden" name="q" value="@ViewBag.Q" />
-
     <label>Filter po tvrtki:</label>
     <select name="tvrtkaId">
         <option value="">-- sve --</option>
@@ -23,7 +21,10 @@
         }
     </select>
 
+    <input name="q" value="@ViewBag.Q" placeholder="Pretraži..." />
+
     <button type="submit">Primijeni</button>
+    <a asp-action="Create">+ Nova vrsta rada</a>
 </form>
 
 <table>
@@ -35,23 +36,24 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var v in Model)
-        {
-            <tr>
-                <td>@v.Name</td>
-                <td>@v.TvrtkaName</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@v.Id">Uredi</a>
-                    <form asp-action="Delete" asp-route-id="@v.Id" method="post" style="display:inline">
-                        <button type="submit" onclick="return confirm('Obrisati?')">Obriši</button>
-                    </form>
-                </td>
-            </tr>
-        }
+@foreach (var v in Model)
+{
+        <tr id="row-@v.Id">
+            <td>@v.Name</td>
+            <td>@v.TvrtkaName</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@v.Id">Uredi</a>
+
+                <button type="button" class="btn-delete" data-id="@v.Id">
+                    Obriši
+                </button>
+            </td>
+        </tr>
+}
     </tbody>
 </table>
 
-            @{
+@{
     int page = ViewBag.Page;
     int totalPages = ViewBag.TotalPages;
     string q = ViewBag.Q;
@@ -60,13 +62,35 @@
 <div>
     @if (page > 1)
     {
-        <a asp-action="Index" asp-route-page="@(page - 1)" asp-route-q="@q">← Prethodna</a>
+        <a asp-action="Index"
+           asp-route-page="@(page - 1)"
+           asp-route-q="@q"
+           asp-route-tvrtkaId="@ViewBag.SelectedTvrtkaId">← Prethodna</a>
     }
 
-    <span> Stranica  / @totalPages </span>
+    <span>Stranica @@page / @totalPages</span>
 
     @if (page < totalPages)
     {
-        <a asp-action="Index" asp-route-page="@(page + 1)" asp-route-q="@q">Sljedeća →</a>
+        <a asp-action="Index"
+           asp-route-page="@(page + 1)"
+           asp-route-q="@q"
+           asp-route-tvrtkaId="@ViewBag.SelectedTvrtkaId">Sljedeća →</a>
     }
 </div>
+
+@section Scripts {
+<script>
+document.querySelectorAll(".btn-delete").forEach(btn => {
+    btn.addEventListener("click", async () => {
+        const id = btn.dataset.id;
+        if (!confirm("Obrisati?")) return;
+
+        const res = await fetch(`/VrstaRada/DeleteAjax/${id}`, { method: "DELETE" });
+
+        if (res.ok) document.getElementById(`row-${id}`)?.remove();
+        else alert("Greška: " + await res.text());
+    });
+});
+</script>
+}

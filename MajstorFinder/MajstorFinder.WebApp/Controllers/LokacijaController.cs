@@ -106,5 +106,20 @@ namespace MajstorFinder.WebApp.Controllers
 
             return View(items);
         }
+
+
+        [HttpDelete]
+        public async Task<IActionResult> DeleteAjax(int id)
+        {
+            var jwt = HttpContext.Session.GetString("jwt");
+            var client = ApiClientFactory.CreateWithJwt(_factory, jwt);
+
+            var res = await client.DeleteAsync($"/api/Lokacija/{id}");
+
+            if (!res.IsSuccessStatusCode)
+                return BadRequest(await res.Content.ReadAsStringAsync());
+
+            return Ok();
+        }
     }
 }
