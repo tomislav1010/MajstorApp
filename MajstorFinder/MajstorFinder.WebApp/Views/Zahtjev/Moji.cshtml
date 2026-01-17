@@ -1,0 +1,23 @@
+﻿@model List<ZahtjevVm>
+
+<h2>Moji zahtjevi</h2>
+
+<table class="table table-striped table-hover align-middle">
+    <thead>
+        <tr>
+            <th>Opis</th>
+            <th>Status</th>
+            <th>Datum</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var z in Model)
+        {
+            <tr>
+                <td>@z.Description</td>
+                <td>@z.Status</td>
+                <td>@z.DateCreated</td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,26 @@
+﻿@model TvrtkaVm
+@{
+    var vrste = (List<VrstaRadaVm>)ViewBag.Vrste;
+}
+
+<h2>@Model.Name</h2>
+<p>@Model.Description</p>
+<p><b>Email:</b> @Model.Email</p>
+<p><b>Telefon:</b> @Model.Phone</p>
+
+<h4>Vrste rada</h4>
+<ul>
+    @foreach (var v in vrste)
+    {
+        <li>
+            @v.Name
+            <a class="btn btn-sm btn-success ms-2"
+               asp-controller="Zahtjev" asp-action="Create"
+               asp-route-tvrtkaId="@Model.Id" asp-route-vrstaRadaId="@v.Id">
+                Pošalji zahtjev
+            </a>
+        </li>
+    }
+</ul>
+
+<a class="btn btn-secondary" asp-action="Index">Nazad</a>

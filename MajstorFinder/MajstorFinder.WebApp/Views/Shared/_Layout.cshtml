@@ -4,15 +4,21 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - MajstorFinder</title>
+
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/MajstorFinder.WebApp.styles.css" asp-append-version="true" />
 </head>
 <body>
+    @{
+        var jwt = Context.Session.GetString("jwt");
+        bool isLoggedIn = !string.IsNullOrEmpty(jwt);
+    }
+
     <header>
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
             <div class="container">
-                <a class="navbar-brand" asp-controller="Tvrtka" asp-action="Index">MajstorFinder</a>
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">MajstorFinder</a>
 
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
                     <span class="navbar-toggler-icon"></span>
@@ -20,21 +26,42 @@
 
                 <div class="collapse navbar-collapse" id="nav">
                     <ul class="navbar-nav me-auto">
+                        <!-- KLIJENT -->
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Tvrtka" asp-action="Index">Tvrtke</a>
+                            <a class="nav-link" asp-controller="Browse" asp-action="Index">Pretraga</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="VrstaRada" asp-action="Index">Vrste rada</a>
+                            <a class="nav-link" asp-controller="Zahtjev" asp-action="Moji">Moji zahtjevi</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Lokacija" asp-action="Index">Lokacije</a>
-                        </li>
+
+                        <!-- ADMIN (samo kad je logiran) -->
+                        @if (isLoggedIn)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Tvrtka" asp-action="Index">Tvrtke</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="VrstaRada" asp-action="Index">Vrste rada</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Lokacija" asp-action="Index">Lokacije</a>
+                            </li>
+                        }
                     </ul>
 
                     <ul class="navbar-nav">
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Auth" asp-action="Logout">Odjava</a>
-                        </li>
+                        @if (isLoggedIn)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Auth" asp-action="Logout">Odjava</a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Auth" asp-action="Login">Prijava</a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>
@@ -57,5 +84,6 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+
 </body>
 </html>

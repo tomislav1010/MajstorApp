@@ -1,0 +1,55 @@
+﻿@model BrowseVm
+
+<h2>Pretraga</h2>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-4">
+        <label>Vrsta rada</label>
+        <select class="form-select" name="vrstaRadaId">
+            <option value="">-- sve --</option>
+            @foreach (var v in Model.VrsteRada)
+            {
+                <option value="@v.Id" selected="@(Model.VrstaRadaId == v.Id)">@v.Name</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-md-4">
+        <label>Lokacija</label>
+        <select class="form-select" name="lokacijaId">
+            <option value="">-- sve --</option>
+            @foreach (var l in Model.Lokacije)
+            {
+                <option value="@l.Id" selected="@(Model.LokacijaId == l.Id)">@l.Name</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-auto d-flex align-items-end">
+        <button class="btn btn-primary" type="submit">Traži</button>
+    </div>
+</form>
+
+<table class="table table-striped table-hover align-middle">
+    <thead>
+        <tr>
+            <th>Naziv</th>
+            <th>Email</th>
+            <th>Telefon</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var t in Model.Tvrtke)
+        {
+            <tr>
+                <td>@t.Name</td>
+                <td>@t.Email</td>
+                <td>@t.Phone</td>
+                <td class="text-end">
+                    <a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@t.Id">Detalji</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
