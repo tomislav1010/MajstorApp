@@ -54,8 +54,7 @@ namespace MajstorFinder.WebApp.Controllers
         {
             var client = Api();
             var all = await client.GetFromJsonAsync<List<ZahtjevVm>>("/api/Zahtjev") ?? new();
-            var mine = all.Where(z => z.KorisnikId == 1).ToList(); // ako nema KorisnikId u VM, dodaj ga
-
+            var mine = await client.GetFromJsonAsync<List<ZahtjevVm>>("/api/Zahtjev?korisnikId=1") ?? new();
             return View(mine);
         }
     }
