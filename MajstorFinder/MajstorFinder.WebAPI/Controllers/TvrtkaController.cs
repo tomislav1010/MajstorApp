@@ -159,5 +159,35 @@ namespace MajstorFinder.WebAPI.Controllers
             });
             _context.SaveChanges();
         }
+
+
+        [HttpGet("search")]
+        public IActionResult Search([FromQuery] int? lokacijaId, [FromQuery] int? vrstaRadaId)
+        {
+            var q = _context.Tvrtkas
+                .Include(t => t.Lokacijas)
+                .Include(t => t.VrstaRadas)
+                .AsQueryable();
+
+            if (lokacijaId.HasValue)
+                q = q.Where(t => t.Lokacijas.Any(l => l.Id == lokacijaId.Value));
+
+            if (vrstaRadaId.HasValue)
+                q = q.Where(t => t.VrstaRadas.Any(v => v.Id == vrstaRadaId.Value));
+
+            var result = q
+                .Select(t => new
+                {
+                    t.Id,
+                    t.Name,
+                    t.Description,
+                    t.Phone,
+                    t.Email
+                })
+                .OrderBy(t => t.Name)
+                .ToList();
+
+            return Ok(result);
+        }
     }
 }

@@ -57,5 +57,7 @@ namespace MajstorFinder.WebApp.Controllers
 
             return View(tvrtka);
         }
+
+
     }
 }
