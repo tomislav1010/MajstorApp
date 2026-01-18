@@ -29,8 +29,19 @@ namespace MajstorFinder.WebApp.Controllers
 
             if (lokacijaId.HasValue)
             {
-                // treba API endpoint /api/Tvrtka/{id}/lokacije da filtriramo po lokaciji
-                // ako ga nema: preskoči lokacija filter ili ga implementiramo u API-u
+                
+                    var filtered = new List<TvrtkaVm>();
+
+                    foreach (var t in tvrtke)
+                    {
+                        var loks = await client.GetFromJsonAsync<List<LokacijaVm>>($"/api/Tvrtka/{t.Id}/lokacije") ?? new();
+
+                        if (loks.Any(x => x.Id == lokacijaId.Value))
+                            filtered.Add(t);
+                    }
+
+                    tvrtke = filtered;
+            
             }
 
             var vm = new BrowseVm
@@ -48,12 +59,19 @@ namespace MajstorFinder.WebApp.Controllers
         public async Task<IActionResult> Details(int id)
         {
             var client = Api();
+
             var tvrtka = await client.GetFromJsonAsync<TvrtkaVm>($"/api/Tvrtka/{id}");
             if (tvrtka == null) return NotFound();
 
-            // Učitaj vrste rada za tu tvrtku (iz svih vrsta rada filtriraj)
-            var vrste = await client.GetFromJsonAsync<List<VrstaRadaVm>>("/api/VrstaRada") ?? new();
-            ViewBag.Vrste = vrste.Where(v => v.TvrtkaId == id).ToList();
+            // vrste rada za tvrtku
+            var sveVrste = await client.GetFromJsonAsync<List<VrstaRadaVm>>("/api/VrstaRada") ?? new();
+            var vrste = sveVrste.Where(v => v.TvrtkaId == id).ToList();
+
+            // lokacije za tvrtku (ti već imaš endpoint u WebAPI-ju)
+            var lokacije = await client.GetFromJsonAsync<List<LokacijaVm>>($"/api/Tvrtka/{id}/lokacije") ?? new();
+
+            ViewBag.Vrste = vrste;
+            ViewBag.Lokacije = lokacije;
 
             return View(tvrtka);
         }
