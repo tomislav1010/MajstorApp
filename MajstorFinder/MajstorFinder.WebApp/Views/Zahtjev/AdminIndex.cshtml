@@ -1,0 +1,43 @@
+﻿@model List<ZahtjevVm>
+
+<h2>Zahtjevi (Admin)</h2>
+
+@if (TempData["Err"] != null)
+{
+    <div class="alert alert-danger">@TempData["Err"]</div>
+}
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Opis</th>
+            <th>Status</th>
+            <th>Datum</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var z in Model)
+        {
+            <tr>
+                <td>@z.Id</td>
+                <td>@z.Description</td>
+                <td>@z.Status</td>
+                <td>@z.DateCreated</td>
+                <td>
+                    <form method="post" asp-action="ChangeStatus">
+                        <input type="hidden" name="id" value="@z.Id" />
+                        <select name="status" class="form-select form-select-sm d-inline w-auto">
+                            <option selected="@(z.Status == "Poslano")">Poslano</option>
+                            <option selected="@(z.Status == "U obradi")">U obradi</option>
+                            <option selected="@(z.Status == "Odobreno")">Odobreno</option>
+                            <option selected="@(z.Status == "Odbijeno")">Odbijeno</option>
+                        </select>
+                        <button class="btn btn-sm btn-primary">Spremi</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

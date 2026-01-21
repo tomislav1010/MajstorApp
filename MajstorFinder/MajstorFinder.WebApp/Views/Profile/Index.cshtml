@@ -1,0 +1,38 @@
+﻿@model AppUserVm
+
+<h2>Moj profil</h2>
+
+<div class="mb-3">
+    <label class="form-label">Username</label>
+    <input class="form-control" id="username" value="@Model.Username" />
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Email</label>
+    <input class="form-control" id="email" value="@Model.Email" />
+</div>
+
+<button class="btn btn-primary" id="btnSave">Spremi</button>
+<span class="ms-2" id="msg"></span>
+
+@section Scripts {
+    <script>
+        document.getElementById("btnSave").addEventListener("click", async () => {
+            const payload = {
+                username: document.getElementById("username").value,
+                email: document.getElementById("email").value
+            };
+
+                    const res = await fetch("/Profile/UpdateAjax", { body: JSON.stringify(AppUserVm) })
+        , {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const msg = document.getElementById("msg");
+            if (res.ok) { msg.innerText = "✅ Spremljeno"; msg.className="text-success"; }
+            else { msg.innerText = "❌ " + await res.text(); msg.className="text-danger"; }
+        });
+    </script>
+}

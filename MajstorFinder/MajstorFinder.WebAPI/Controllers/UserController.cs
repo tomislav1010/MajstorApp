@@ -1,6 +1,7 @@
 ﻿using MajstorFinder.WebAPI.DTOs;
 using MajstorFinder.WebAPI.Helpers;
 using MajstorFinder.WebAPI.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -85,6 +86,43 @@ namespace MajstorFinder.WebAPI.Controllers
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+
+
+        [Authorize]
+        [HttpGet("me")]
+        public IActionResult Me()
+        {
+            var userId = int.Parse(User.FindFirst("id")!.Value);
+
+            var user = _context.AppUsers
+                .Where(u => u.Id == userId)
+                .Select(u => new {
+                    u.Id,
+                    u.Username,
+                    u.Email
+                })
+                .FirstOrDefault();
+
+            if (user == null) return NotFound();
+            return Ok(user);
+        }
+
+        [Authorize]
+        [HttpPut("me")]
+        public IActionResult UpdateMe([FromBody] UpdateUserDto dto)
+        {
+            var userId = int.Parse(User.FindFirst("id")!.Value);
+
+            var user = _context.AppUsers.SingleOrDefault(u => u.Id == userId);
+            if (user == null) return NotFound();
+
+            user.Username = dto.Username;
+            user.Email = dto.Email;
+
+            _context.SaveChanges();
+            return Ok();
         }
     }
 }

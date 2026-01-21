@@ -1,6 +1,6 @@
 create database RWA
 
-
+use RWA
 -- =========================
 -- TVRTKA (primarni entitet)
 -- =========================

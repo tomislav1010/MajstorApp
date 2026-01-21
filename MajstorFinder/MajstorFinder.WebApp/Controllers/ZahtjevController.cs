@@ -1,6 +1,7 @@
 ﻿using MajstorFinder.WebApp.Helpers;
 using MajstorFinder.WebApp.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace MajstorFinder.WebApp.Controllers
 {
@@ -57,5 +58,31 @@ namespace MajstorFinder.WebApp.Controllers
             var mine = await client.GetFromJsonAsync<List<ZahtjevVm>>("/api/Zahtjev?korisnikId=1") ?? new();
             return View(mine);
         }
+
+
+        public async Task<IActionResult> AdminIndex()
+        {
+            var client = Api();
+            var list = await client.GetFromJsonAsync<List<ZahtjevVm>>("/api/Zahtjev") ?? new();
+            return View(list);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ChangeStatus(int id, string status)
+        {
+            var client = Api();
+
+            var res = await client.PutAsJsonAsync($"/api/Zahtjev/{id}/status", new { status });
+
+            if (!res.IsSuccessStatusCode)
+                TempData["Err"] = await res.Content.ReadAsStringAsync();
+
+            return RedirectToAction(nameof(AdminIndex));
+        }
+
+
+
+
+
     }
 }

@@ -65,6 +65,24 @@ namespace MajstorFinder.WebAPI.Controllers
 
             return CreatedAtAction(nameof(GetById), new { id = z.Id }, z);
         }
+
+
+        [HttpPut("{id}/status")]
+        public IActionResult UpdateStatus(int id, [FromBody] StatusDto dto)
+        {
+            var z = _context.Zahtjevs.SingleOrDefault(x => x.Id == id);
+            if (z == null) return NotFound();
+
+            z.Status = dto.Status;
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        public class StatusDto
+        {
+            public string Status { get; set; } = "";
+        }
     }
 }
 
