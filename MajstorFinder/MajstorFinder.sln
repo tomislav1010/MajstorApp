@@ -1,11 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36414.22 d17.14
+# Visual Studio Version 18
+VisualStudioVersion = 18.2.11415.280 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MajstorFinder.WebAPI", "MajstorFinder.WebAPI\MajstorFinder.WebAPI.csproj", "{9E9A7F32-0F95-4ADD-9FD9-47491ECD2918}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MajstorFinder.WebApp", "MajstorFinder.WebApp\MajstorFinder.WebApp.csproj", "{8F469102-076F-4755-A3E7-F16CC181502F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MajstorFinder.DAL", "MajstorFinder.DAL\MajstorFinder.DAL.csproj", "{B8071194-B88F-43EA-B339-B9D1D811F44C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MajstorFinder.BLL", "MajstorFinder.BLL\MajstorFinder.BLL.csproj", "{3BAC1FC2-CEF6-46E1-9CEE-62C3514B6E5E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MajstorFinder.Shared", "MajstorFinder.Shared\MajstorFinder.Shared.csproj", "{E6B1D2DC-25A7-4D45-ACF0-6B39927C950C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +27,18 @@ Global
 		{8F469102-076F-4755-A3E7-F16CC181502F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8F469102-076F-4755-A3E7-F16CC181502F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8F469102-076F-4755-A3E7-F16CC181502F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8071194-B88F-43EA-B339-B9D1D811F44C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8071194-B88F-43EA-B339-B9D1D811F44C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8071194-B88F-43EA-B339-B9D1D811F44C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8071194-B88F-43EA-B339-B9D1D811F44C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3BAC1FC2-CEF6-46E1-9CEE-62C3514B6E5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3BAC1FC2-CEF6-46E1-9CEE-62C3514B6E5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3BAC1FC2-CEF6-46E1-9CEE-62C3514B6E5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3BAC1FC2-CEF6-46E1-9CEE-62C3514B6E5E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E6B1D2DC-25A7-4D45-ACF0-6B39927C950C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E6B1D2DC-25A7-4D45-ACF0-6B39927C950C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E6B1D2DC-25A7-4D45-ACF0-6B39927C950C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E6B1D2DC-25A7-4D45-ACF0-6B39927C950C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

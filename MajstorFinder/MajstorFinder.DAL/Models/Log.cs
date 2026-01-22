@@ -1,4 +1,4 @@
-﻿namespace MajstorFinder.WebAPI.Models
+﻿namespace MajstorFinder.DAL.Models
 {
     public class Log
     {

@@ -1,7 +1,7 @@
 ﻿using MajstorFinder.WebAPI.DTOs;
-using MajstorFinder.WebAPI.Models;
+using MajstorFinder.DAL.Models;
+using MajstorFinder.DAL;
 using Microsoft.AspNetCore.Mvc;
-using MajstorFinder.WebAPI.DTOs;
 
 namespace MajstorFinder.WebAPI.Controllers
 {
@@ -41,7 +41,7 @@ namespace MajstorFinder.WebAPI.Controllers
             if (_context.VrstaRadas.Any(v => v.TvrtkaId == dto.TvrtkaId && v.Name == dto.Name))
                 return BadRequest("Vrsta rada s istim nazivom već postoji za tu tvrtku.");
 
-            var entity = new MajstorFinder.WebAPI.Models.VrstaRada
+            var entity = new MajstorFinder.DAL.Models.VrstaRada
             {
                 Name = dto.Name,
                 TvrtkaId = dto.TvrtkaId
@@ -80,8 +80,7 @@ namespace MajstorFinder.WebAPI.Controllers
             var entity = _context.VrstaRadas.Find(id);
             if (entity == null) return NotFound();
 
-            // Ako ima zahtjeva vezanih na VrstaRada, brisanje može pasti FK-om.
-            // Elegantno:
+        
             try
             {
                 _context.VrstaRadas.Remove(entity);

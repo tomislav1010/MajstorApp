@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MajstorFinder.DAL\MajstorFinder.DAL.csproj" />
+    <ProjectReference Include="..\MajstorFinder.Shared\MajstorFinder.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

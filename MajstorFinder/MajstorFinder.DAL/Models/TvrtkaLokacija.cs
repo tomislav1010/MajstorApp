@@ -1,4 +1,4 @@
-﻿namespace MajstorFinder.WebAPI.Models
+﻿namespace MajstorFinder.DAL.Models
 {
     public partial class TvrtkaLokacija
     {

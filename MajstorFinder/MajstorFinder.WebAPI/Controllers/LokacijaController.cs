@@ -1,5 +1,6 @@
 ﻿using MajstorFinder.WebAPI.DTOs;
-using MajstorFinder.WebAPI.Models;
+using MajstorFinder.DAL.Models;
+using MajstorFinder.DAL;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MajstorFinder.WebAPI.Controllers
@@ -36,7 +37,7 @@ namespace MajstorFinder.WebAPI.Controllers
             if (_context.Lokacijas.Any(l => l.Name == dto.Name))
                 return BadRequest("Lokacija s istim nazivom već postoji.");
 
-            var entity = new MajstorFinder.WebAPI.Models.Lokacija { Name = dto.Name };
+            var entity = new MajstorFinder.DAL.Models.Lokacija { Name = dto.Name };
             _context.Lokacijas.Add(entity);
             _context.SaveChanges();
 

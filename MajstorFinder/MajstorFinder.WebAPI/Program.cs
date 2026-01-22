@@ -1,4 +1,5 @@
-using MajstorFinder.WebAPI.Models;
+using MajstorFinder.DAL.Models;
+using MajstorFinder.DAL;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;

@@ -1,4 +1,4 @@
-﻿using MajstorFinder.WebAPI.Models;
+﻿using MajstorFinder.DAL;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MajstorFinder.WebAPI.Controllers

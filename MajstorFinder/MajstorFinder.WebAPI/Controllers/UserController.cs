@@ -1,6 +1,7 @@
 ﻿using MajstorFinder.WebAPI.DTOs;
 using MajstorFinder.WebAPI.Helpers;
-using MajstorFinder.WebAPI.Models;
+using MajstorFinder.DAL.Models;
+using MajstorFinder.DAL;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

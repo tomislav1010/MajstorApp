@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace MajstorFinder.WebAPI.Models;
-
+namespace MajstorFinder.DAL.Models;
 public partial class Korisnik
 {
     public int Id { get; set; }
