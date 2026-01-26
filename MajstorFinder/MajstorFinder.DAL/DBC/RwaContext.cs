@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
-namespace MajstorFinder.DAL.Model;
-
+namespace MajstorFinder.DAL.DBC;
+/*
 public partial class RwaContext : DbContext
 {
     public RwaContext()
@@ -160,3 +160,4 @@ public partial class RwaContext : DbContext
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
+*/

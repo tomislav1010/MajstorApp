@@ -1,53 +1,48 @@
 ﻿using MajstorFinder.WebApp.Models;
 using Microsoft.AspNetCore.Mvc;
+using MajstorFinder.BLL.Interfaces;
+
 
 namespace MajstorFinder.WebApp.Controllers
 {
-    public class AuthController:Controller
+    public class AuthController : Controller
     {
-        private readonly IHttpClientFactory _factory;
-        public AuthController(IHttpClientFactory factory) => _factory = factory;
+        private readonly IAuthService _auth;
+
+        public AuthController(IAuthService auth) => _auth = auth;
 
         [HttpGet]
         public IActionResult Login() => View(new LoginViewModel());
 
         [HttpPost]
-        public async Task<IActionResult> Login(LoginViewModel model)
+        public IActionResult Login(LoginViewModel model)
         {
             if (!ModelState.IsValid) return View(model);
 
-            var client = _factory.CreateClient("ApiClient");
-
-            var resp = await client.PostAsJsonAsync("/api/user/login", new
-            {
-                email = model.Email,
-                password = model.Password
-            });
-
-            if (!resp.IsSuccessStatusCode)
+            var user = _auth.ValidateLogin(model.Email, model.Password);
+            if (user == null)
             {
                 ModelState.AddModelError("", "Pogrešan email ili lozinka.");
                 return View(model);
             }
 
-            var data = await resp.Content.ReadFromJsonAsync<TokenResponse>();
-            HttpContext.Session.SetString("jwt", data!.Token);
+            // spremi user u session (umjesto jwt)
+            HttpContext.Session.SetInt32("userId", user.Id);
+            HttpContext.Session.SetString("username", user.Username);
+
+            // ako imaš u tablici ulogu/isAdmin, spremi i to
+            // HttpContext.Session.SetString("role", user.Role);
 
             return RedirectToAction("Index", "Home");
         }
-        public IActionResult AdminLoginPreview()
-        {
-            return View("Auth");
-        }
+
         public IActionResult Logout()
         {
-            HttpContext.Session.Remove("jwt");
+            HttpContext.Session.Clear();
             return RedirectToAction("Login");
         }
 
-        private class TokenResponse
-        {
-            public string Token { get; set; } = "";
-        }
+        // ovo možeš obrisati ako ti ne treba
+        public IActionResult AdminLoginPreview() => View("Auth");
     }
 }

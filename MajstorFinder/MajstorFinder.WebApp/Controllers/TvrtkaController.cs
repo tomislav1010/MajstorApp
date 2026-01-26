@@ -1,36 +1,48 @@
 ﻿using MajstorFinder.WebApp.Helpers;
 using MajstorFinder.WebApp.Models;
 using Microsoft.AspNetCore.Mvc;
+using MajstorFinder.BLL.Interfaces;
+using MajstorFinder.DAL.Models;
+
 
 namespace MajstorFinder.WebApp.Controllers
 {
+    // AdminController ti i dalje štiti admin dio (session/role)
     public class TvrtkaController : AdminController
     {
-        private readonly IHttpClientFactory _factory;
+        private readonly ITvrtkaService _tvrtkaService;
+        private readonly ILokacijaService _lokacijaService;
 
-        public TvrtkaController(IHttpClientFactory factory)
+        public TvrtkaController(ITvrtkaService tvrtkaService, ILokacijaService lokacijaService)
         {
-            _factory = factory;
+            _tvrtkaService = tvrtkaService;
+            _lokacijaService = lokacijaService;
         }
 
-        // LIST (za danas - bez paging prvo, pa dodamo)
-     /*   public async Task<IActionResult> Index(string? q)
+        // LIST + search + paging (sad je "pravo" paging u BLL-u, ne klijentski)
+        public async Task<IActionResult> Index(string? q, int page = 1, int pageSize = 5)
         {
-            var jwt = HttpContext.Session.GetString("jwt");
-            var client = ApiClientFactory.CreateWithJwt(_factory, jwt);
+            var items = await _tvrtkaService.GetAllAsync(q, page, pageSize);
+            var total = await _tvrtkaService.CountAsync(q);
 
-            // Ako tvoj API ima search/paging endpoint, kasnije ćemo ga koristiti.
-            var tvrtke = await client.GetFromJsonAsync<List<TvrtkaVm>>("/api/tvrtka");
-
-            if (!string.IsNullOrWhiteSpace(q))
-                tvrtke = tvrtke!
-                    .Where(t => t.Name.Contains(q, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalPages = (int)Math.Ceiling(total / (double)pageSize);
             ViewBag.Q = q ?? "";
-            return View(tvrtke ?? new List<TvrtkaVm>());
+
+            // map Entity -> Vm (da view ostane isti)
+            var vm = items.Select(t => new TvrtkaVm
+            {
+                Id = t.Id,
+                Name = t.Name,
+                Description = t.Description,
+                Phone = t.Phone,
+                Email = t.Email
+            }).ToList();
+
+            return View(vm);
         }
-     */
+
         [HttpGet]
         public IActionResult Create() => View(new TvrtkaVm());
 
@@ -39,22 +51,14 @@ namespace MajstorFinder.WebApp.Controllers
         {
             if (!ModelState.IsValid) return View(model);
 
-            var jwt = HttpContext.Session.GetString("jwt");
-            var client = ApiClientFactory.CreateWithJwt(_factory, jwt);
-
-            var resp = await client.PostAsJsonAsync("/api/tvrtka", new
+            // BLL zapisuje u DB preko DAL-a
+            await _tvrtkaService.CreateAsync(new Tvrtka
             {
-                name = model.Name,
-                description = model.Description,
-                phone = model.Phone,
-                email = model.Email
+                Name = model.Name,
+                Description = model.Description,
+                Phone = model.Phone,
+                Email = model.Email
             });
-
-            if (!resp.IsSuccessStatusCode)
-            {
-                ModelState.AddModelError("", "Greška pri spremanju tvrtke.");
-                return View(model);
-            }
 
             return RedirectToAction(nameof(Index));
         }
@@ -62,13 +66,19 @@ namespace MajstorFinder.WebApp.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var jwt = HttpContext.Session.GetString("jwt");
-            var client = ApiClientFactory.CreateWithJwt(_factory, jwt);
+            var t = await _tvrtkaService.GetByIdAsync(id);
+            if (t == null) return NotFound();
 
-            var tvrtka = await client.GetFromJsonAsync<TvrtkaVm>($"/api/tvrtka/{id}");
-            if (tvrtka == null) return NotFound();
+            var vm = new TvrtkaVm
+            {
+                Id = t.Id,
+                Name = t.Name,
+                Description = t.Description,
+                Phone = t.Phone,
+                Email = t.Email
+            };
 
-            return View(tvrtka);
+            return View(vm);
         }
 
         [HttpPost]
@@ -77,23 +87,16 @@ namespace MajstorFinder.WebApp.Controllers
             if (id != model.Id) return BadRequest();
             if (!ModelState.IsValid) return View(model);
 
-            var jwt = HttpContext.Session.GetString("jwt");
-            var client = ApiClientFactory.CreateWithJwt(_factory, jwt);
-
-            var resp = await client.PutAsJsonAsync($"/api/tvrtka/{id}", new
+            var ok = await _tvrtkaService.UpdateAsync(id, new Tvrtka
             {
-                id = model.Id,
-                name = model.Name,
-                description = model.Description,
-                phone = model.Phone,
-                email = model.Email
+                Id = model.Id,
+                Name = model.Name,
+                Description = model.Description,
+                Phone = model.Phone,
+                Email = model.Email
             });
 
-            if (!resp.IsSuccessStatusCode)
-            {
-                ModelState.AddModelError("", "Greška pri ažuriranju tvrtke.");
-                return View(model);
-            }
+            if (!ok) return NotFound();
 
             return RedirectToAction(nameof(Index));
         }
@@ -101,32 +104,33 @@ namespace MajstorFinder.WebApp.Controllers
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
-            var jwt = HttpContext.Session.GetString("jwt");
-            var client = ApiClientFactory.CreateWithJwt(_factory, jwt);
+            // Ako ne uspije (npr. FK constraint), service vrati false ili baci exception
+            var ok = await _tvrtkaService.DeleteAsync(id);
 
-            var resp = await client.DeleteAsync($"/api/tvrtka/{id}");
-
-            if (!resp.IsSuccessStatusCode)
-            {
-                // najčešće 409 ako je vezano za nešto
+            if (!ok)
                 TempData["Err"] = "Ne mogu obrisati tvrtku (možda je vezana uz vrste rada/zahtjeve).";
-            }
 
             return RedirectToAction(nameof(Index));
         }
 
+        // AJAX delete (ako ga koristiš u viewu)
+        [HttpDelete]
+        public async Task<IActionResult> DeleteAjax(int id)
+        {
+            var ok = await _tvrtkaService.DeleteAsync(id);
+            if (!ok) return BadRequest("Ne mogu obrisati tvrtku (možda je vezana uz vrste rada/zahtjeve).");
+            return Ok();
+        }
 
+        // LOKACIJE view: prikaz svih lokacija + trenutno vezanih lokacija za tvrtku
         [HttpGet]
         public async Task<IActionResult> Lokacije(int id)
         {
-            var jwt = HttpContext.Session.GetString("jwt");
-            var client = ApiClientFactory.CreateWithJwt(_factory, jwt);
-
-            var tvrtka = await client.GetFromJsonAsync<TvrtkaVm>($"/api/Tvrtka/{id}");
+            var tvrtka = await _tvrtkaService.GetByIdAsync(id);
             if (tvrtka == null) return NotFound();
 
-            var sveLokacije = await client.GetFromJsonAsync<List<LokacijaVm>>("/api/Lokacija") ?? new();
-            var postojece = await client.GetFromJsonAsync<List<LokacijaVm>>($"/api/Tvrtka/{id}/lokacije") ?? new();
+            var sveLokacije = await _lokacijaService.GetAllAsync(null, 1, int.MaxValue);
+            var postojece = await _tvrtkaService.GetLokacijeAsync(id); // ovo moraš imati u ITvrtkaService + TvrtkaService
 
             var set = postojece.Select(x => x.Id).ToHashSet();
 
@@ -145,64 +149,14 @@ namespace MajstorFinder.WebApp.Controllers
             return View(vm);
         }
 
+        // LOKACIJE submit: ovdje je najbolje imati poseban service za M-N (TvrtkaLokacija)
+        // Za Dan 1 ćemo staviti placeholder i sutra (Dan 2) to selimo u TvrtkaLokacijaService
         [HttpPost]
         public async Task<IActionResult> Lokacije(TvrtkaLokacijeVm model)
         {
-            var jwt = HttpContext.Session.GetString("jwt");
-            var client = ApiClientFactory.CreateWithJwt(_factory, jwt);
-
-            // current from API
-            var postojece = await client.GetFromJsonAsync<List<LokacijaVm>>($"/api/Tvrtka/{model.TvrtkaId}/lokacije") ?? new();
-            var current = postojece.Select(x => x.Id).ToHashSet();
-
-            var desired = model.Lokacije.Where(x => x.Selected).Select(x => x.Id).ToHashSet();
-
-            // add new links
-            foreach (var lokId in desired.Except(current))
-                await client.PostAsync($"/api/tvrtka-lokacija?tvrtkaId={model.TvrtkaId}&lokacijaId={lokId}", null);
-
-            // remove unchecked
-            foreach (var lokId in current.Except(desired))
-                await client.DeleteAsync($"/api/tvrtka-lokacija?tvrtkaId={model.TvrtkaId}&lokacijaId={lokId}");
-
-            return RedirectToAction("Index");
-        }
-
-
-        public async Task<IActionResult> Index(string? q, int page = 1, int pageSize = 5)
-        {
-            var jwt = HttpContext.Session.GetString("jwt");
-            var client = ApiClientFactory.CreateWithJwt(_factory, jwt);
-
-            var tvrtke = await client.GetFromJsonAsync<List<TvrtkaVm>>("/api/Tvrtka") ?? new();
-
-            if (!string.IsNullOrWhiteSpace(q))
-                tvrtke = tvrtke.Where(t => t.Name.Contains(q, StringComparison.OrdinalIgnoreCase)).ToList();
-
-            var total = tvrtke.Count;
-            var items = tvrtke.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-            ViewBag.Page = page;
-            ViewBag.PageSize = pageSize;
-            ViewBag.TotalPages = (int)Math.Ceiling(total / (double)pageSize);
-            ViewBag.Q = q ?? "";
-
-            return View(items);
-        }
-
-
-        [HttpDelete]
-        public async Task<IActionResult> DeleteAjax(int id)
-        {
-            var jwt = HttpContext.Session.GetString("jwt");
-            var client = ApiClientFactory.CreateWithJwt(_factory, jwt);
-
-            var res = await client.DeleteAsync($"/api/Tvrtka/{id}");
-
-            if (!res.IsSuccessStatusCode)
-                return BadRequest(await res.Content.ReadAsStringAsync());
-
-            return Ok();
+            // TODO (Dan 2): implementirati TvrtkaLokacijaService i ovdje samo zvati servis
+            // Za sada: ostavi prazno ili vrati na Index dok ne napravimo servis
+            return RedirectToAction(nameof(Index));
         }
     }
 }

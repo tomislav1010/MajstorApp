@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 
 namespace MajstorFinder.DAL.Model;
-
+/*
 public partial class Zahtjev
 {
     public int Id { get; set; }
@@ -25,3 +25,4 @@ public partial class Zahtjev
 
     public virtual VrstaRadum VrstaRada { get; set; } = null!;
 }
+*/

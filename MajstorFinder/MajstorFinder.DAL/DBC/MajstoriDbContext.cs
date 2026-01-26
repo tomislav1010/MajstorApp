@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
 using MajstorFinder.DAL.Models;
+using Microsoft.EntityFrameworkCore;
 
-namespace MajstorFinder.DAL;
+namespace MajstorFinder.DAL.DBC;
+
 public partial class MajstoriDbContext : DbContext
 {
     // private DbSet<Lokacija> lokacijas;

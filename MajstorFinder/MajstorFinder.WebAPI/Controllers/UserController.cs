@@ -1,7 +1,6 @@
 ﻿using MajstorFinder.WebAPI.DTOs;
 using MajstorFinder.WebAPI.Helpers;
 using MajstorFinder.DAL.Models;
-using MajstorFinder.DAL;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +8,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using MajstorFinder.DAL.DbContext;
+using MajstorFinder.DAL.DBC;
 
 namespace MajstorFinder.WebAPI.Controllers
 {

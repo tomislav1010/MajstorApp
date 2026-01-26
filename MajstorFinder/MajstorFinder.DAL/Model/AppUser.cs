@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+/*
 namespace MajstorFinder.DAL.Model;
 
 public partial class AppUser
@@ -19,3 +19,4 @@ public partial class AppUser
 
     public DateTime CreatedAt { get; set; }
 }
+*/

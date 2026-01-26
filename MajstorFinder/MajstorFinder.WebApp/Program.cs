@@ -1,52 +1,45 @@
-using MajstorFinder.WebApp.Data;
+using MajstorFinder.DAL.DBC;
+using MajstorFinder.BLL.Interfaces;
+using MajstorFinder.BLL.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-//var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-//builder.Services.AddDbContext<ApplicationDbContext>(options =>
-  //  options.UseSqlServer(connectionString));
-//builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-
-//builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
- //   .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
 
+// DB (RWA context)
+builder.Services.AddDbContext<MajstoriDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddHttpClient("ApiClient", client =>
-{
-    client.BaseAddress = new Uri(builder.Configuration["Api:BaseUrl"]!);
-});
-
+// Session (za spremiti userId/role)
 builder.Services.AddSession();
+
+// Cookie auth (opcionalno, ali preporuka)
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Auth/Login";
+        options.AccessDeniedPath = "/Auth/Login";
+    });
+
+builder.Services.AddAuthorization();
+
+// BLL servisi (za poèetak Auth)
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-   // app.UseMigrationsEndPoint();
-}
-else
-{
-    app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
-}
-
-app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
 
 app.UseSession();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
-   name: "default",
+    name: "default",
     pattern: "{controller=Auth}/{action=Login}/{id?}");
-//app.MapRazorPages();
 
 app.Run();

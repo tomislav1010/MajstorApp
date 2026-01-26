@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 
 namespace MajstorFinder.DAL.Model;
-
+/*
 public partial class Tvrtka
 {
     public int Id { get; set; }
@@ -21,3 +21,4 @@ public partial class Tvrtka
 
     public virtual ICollection<Lokacija> Lokacijas { get; set; } = new List<Lokacija>();
 }
+*/

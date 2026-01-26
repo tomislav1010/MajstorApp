@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 
 namespace MajstorFinder.DAL.Model;
-
+/*
 public partial class Log
 {
     public int Id { get; set; }
@@ -13,3 +13,4 @@ public partial class Log
 
     public string Message { get; set; } = null!;
 }
+*/

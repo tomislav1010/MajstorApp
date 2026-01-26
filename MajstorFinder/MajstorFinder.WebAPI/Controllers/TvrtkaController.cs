@@ -1,9 +1,10 @@
 ﻿using MajstorFinder.WebAPI.DTOs.MajstoriApp.WebAPI.Dtos;
 using MajstorFinder.DAL.Models;
-using MajstorFinder.DAL;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MajstorFinder.WebAPI.DTOs;
+using MajstorFinder.DAL.DbContext;
+using MajstorFinder.DAL.DBC;
 
 
 namespace MajstorFinder.WebAPI.Controllers

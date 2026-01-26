@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+/*
 namespace MajstorFinder.DAL.Model;
 
 public partial class Korisnik
@@ -15,3 +15,4 @@ public partial class Korisnik
 
     public virtual ICollection<Zahtjev> Zahtjevs { get; set; } = new List<Zahtjev>();
 }
+*/

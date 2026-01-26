@@ -1,10 +1,10 @@
-using MajstorFinder.DAL.Models;
-using MajstorFinder.DAL;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using MajstorFinder.DAL.DbContext;
+using MajstorFinder.DAL.DBC;
 
 var builder = WebApplication.CreateBuilder(args);
 
