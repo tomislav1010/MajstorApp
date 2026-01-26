@@ -1,41 +1,30 @@
-using MajstorFinder.DAL.DBC;
 using MajstorFinder.BLL.Interfaces;
 using MajstorFinder.BLL.Services;
+using MajstorFinder.BLL.Interfaces;
+using MajstorFinder.DAL.DBC;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
-
-// DB (RWA context)
-builder.Services.AddDbContext<MajstoriDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// Session (za spremiti userId/role)
 builder.Services.AddSession();
 
-// Cookie auth (opcionalno, ali preporuka)
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
-    {
-        options.LoginPath = "/Auth/Login";
-        options.AccessDeniedPath = "/Auth/Login";
-    });
+// DbContext (RWA baza)
+builder.Services.AddDbContext<MajstoriDbContext>(opt =>
+    opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddAuthorization();
-
-// BLL servisi (za poèetak Auth)
+// BLL servisi
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ITvrtkaService, TvrtkaService>();
+builder.Services.AddScoped<ILokacijaService, LokacijaService>();
+builder.Services.AddScoped<IVrstaRadaService, VrstaRadaService>();
+builder.Services.AddScoped<IZahtjevService, ZahtjevService>();
 
 var app = builder.Build();
 
 app.UseStaticFiles();
 app.UseRouting();
-
 app.UseSession();
-
-app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
