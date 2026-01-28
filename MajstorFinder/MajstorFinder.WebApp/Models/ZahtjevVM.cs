@@ -10,5 +10,8 @@
         public int TvrtkaId { get; set; }
         public int VrstaRadaId { get; set; }
         public int KorisnikId { get; set; }
+
+        public string? TvrtkaName { get; set; }
+        public string? VrstaRadaName { get; set; }  
     }
 }

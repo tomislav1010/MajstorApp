@@ -20,7 +20,7 @@ namespace MajstorFinder.BLL.Services
             _db = db;
         }
 
-        public async Task<int> CreateAsync(int korisnikid, CreateZahtijevDto dto)
+        public async Task<int> CreateAsync(int korisnikid, CreateZahtjevDto dto)
         {
             var z = new Zahtjev
             {
@@ -50,9 +50,7 @@ namespace MajstorFinder.BLL.Services
             .ToListAsync();
 
         public Task<Zahtjev> GetByIdAsync(int id)
-        {
-            throw new NotImplementedException();
-        }
+         => _db.Zahtjevs.FirstOrDefaultAsync(z => z.Id == id);
 
         public Task<List<Zahtjev>> GetByKorisnikAsync(int korisnikId)
         =>_db.Zahtjevs
@@ -60,9 +58,13 @@ namespace MajstorFinder.BLL.Services
             .OrderByDescending (z=>z.DateCreated)
             .ToListAsync();
 
-        public Task UpdateAsync(int id, string status)
+        public async Task UpdateStatusAsync(int id, string status)
         {
-            throw new NotImplementedException();
+            var z = await _db.Zahtjevs.FirstOrDefaultAsync(x => x.Id == id);
+            if (z == null) return;
+
+            z.Status = status;
+            await _db.SaveChangesAsync();
         }
     }
 }

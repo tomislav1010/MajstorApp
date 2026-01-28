@@ -73,4 +73,7 @@ public class VrstaRadaService : IVrstaRadaService
         await _db.SaveChangesAsync();
         return true;
     }
+
+    public Task<List<VrstaRada>> GetByTvrtkaAsync(int tvrtkaid)
+    =>_db.VrstaRadas.Where(x=>x.TvrtkaId == tvrtkaid).ToListAsync();
 }

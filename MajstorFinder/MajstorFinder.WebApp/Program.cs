@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
-builder.Services.AddSession();
+//builder.Services.AddSession();
 
 // DbContext (RWA baza)
 builder.Services.AddDbContext<MajstoriDbContext>(opt =>
@@ -19,6 +19,9 @@ builder.Services.AddScoped<ITvrtkaService, TvrtkaService>();
 builder.Services.AddScoped<ILokacijaService, LokacijaService>();
 builder.Services.AddScoped<IVrstaRadaService, VrstaRadaService>();
 builder.Services.AddScoped<IZahtjevService, ZahtjevService>();
+
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession();
 
 var app = builder.Build();
 

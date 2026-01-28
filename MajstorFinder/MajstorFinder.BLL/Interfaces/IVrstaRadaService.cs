@@ -17,4 +17,5 @@ public interface IVrstaRadaService
     Task<VrstaRada> CreateAsync(VrstaRada vrsta);
     Task<bool> UpdateAsync(int id, VrstaRada vrsta);
     Task<bool> DeleteAsync(int id);
+    Task<List<VrstaRada>> GetByTvrtkaAsync(int tvrtkaid);
 }

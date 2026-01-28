@@ -14,8 +14,8 @@ namespace MajstorFinder.BLL.Interfaces
         Task<List<Zahtjev>> GetByKorisnikAsync(int korisnikId);
         Task<Zahtjev> GetByIdAsync(int id);
 
-        Task<int> CreateAsync(int korisnikid, CreateZahtijevDto dto);
-        Task UpdateAsync(int id, string status);
+        Task<int> CreateAsync(int korisnikid, CreateZahtjevDto dto);
+        Task UpdateStatusAsync(int id, string status);
         Task DeleteAsync(int id);
     }
 }

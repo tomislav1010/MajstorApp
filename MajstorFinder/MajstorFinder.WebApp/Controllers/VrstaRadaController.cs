@@ -1,184 +1,179 @@
-﻿using MajstorFinder.WebApp.Helpers;
+﻿using MajstorFinder.BLL.Interfaces;
+using MajstorFinder.BLL.Services; 
+using MajstorFinder.WebApp.Helpers;
 using MajstorFinder.WebApp.Models;
+using MajstorFinder.WebApp.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MajstorFinder.WebApp.Controllers
 {
-    public class VrstaRadaController : AdminController
+    public class VrstaRadaController : Controller
     {
-        private readonly IHttpClientFactory _factory;
-        public VrstaRadaController(IHttpClientFactory factory) => _factory = factory;
+        private readonly IVrstaRadaService _vrste;
+        private readonly ITvrtkaService _tvrtke;
 
-        private HttpClient Api()
+        public VrstaRadaController(IVrstaRadaService vrste, ITvrtkaService tvrtke)
         {
-            var jwt = HttpContext.Session.GetString("jwt");
-            return ApiClientFactory.CreateWithJwt(_factory, jwt);
+            _vrste = vrste;
+            _tvrtke = tvrtke;
         }
 
-        // LIST
-       /* public async Task<IActionResult> Index(int? tvrtkaId)
-        {
-            var client = Api();
+        private bool IsAdmin() => HttpContext.Session.GetString("isAdmin") == "1";
 
-            // 1) sve tvrtke za dropdown filter
-            var tvrtke = await client.GetFromJsonAsync<List<TvrtkaVm>>("/api/Tvrtka");
-            ViewBag.Tvrtke = tvrtke ?? new List<TvrtkaVm>();
+        // LIST + FILTER + PAGING
+        public async Task<IActionResult> Index(int? tvrtkaId, int page = 1, int pageSize = 5)
+        {
+            if (!IsAdmin()) return RedirectToAction("Login", "Auth");
+
+            // dropdown tvrtki
+            var sveTvrtke = await _tvrtke.GetAllAsync(null, 1, 1000);
+            ViewBag.Tvrtke = sveTvrtke
+                .Select(t => new TvrtkaVm { Id = t.Id, Name = t.Name })
+                .ToList();
+
             ViewBag.SelectedTvrtkaId = tvrtkaId;
 
-            // 2) vrste rada (ako tvoj API nema poseban filter endpoint, filtriramo u MVC-u)
-            var vrste = await client.GetFromJsonAsync<List<VrstaRadaVm>>("/api/VrstaRada");
-            vrste ??= new List<VrstaRadaVm>();
+            // paged data
+            var vrste = await _vrste.GetAllAsync(tvrtkaId, page, pageSize);
+            var total = await _vrste.CountAsync(tvrtkaId);
 
-            // mapiraj TvrtkaName radi prikaza
-            var dict = (tvrtke ?? new List<TvrtkaVm>()).ToDictionary(x => x.Id, x => x.Name);
-            foreach (var v in vrste)
-                if (dict.TryGetValue(v.TvrtkaId, out var name)) v.TvrtkaName = name;
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalPages = (int)Math.Ceiling(total / (double)pageSize);
 
-            if (tvrtkaId.HasValue)
-                vrste = vrste.Where(v => v.TvrtkaId == tvrtkaId.Value).ToList();
+            var vm = vrste.Select(v => new VrstaRadaVm
+            {
+                Id = v.Id,
+                Name = v.Name,
+                TvrtkaId = v.TvrtkaId
+            }).ToList();
 
-            return View(vrste);
+            return View(vm);
         }
-       */
-        // CREATE
+
+        // CREATE GET
         [HttpGet]
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(int? tvrtkaId)
         {
-            await LoadTvrtke();
-            return View(new VrstaRadaVm());
+            if (!IsAdmin()) return RedirectToAction("Login", "Auth");
+
+            var sveTvrtke = await _tvrtke.GetAllAsync(null, 1, 1000);
+            ViewBag.Tvrtke = sveTvrtke
+                .Select(t => new TvrtkaVm { Id = t.Id, Name = t.Name })
+                .ToList();
+
+            ViewBag.SelectedTvrtkaId = tvrtkaId;
+
+            return View(new VrstaRadaVm { TvrtkaId = tvrtkaId ?? 0 });
         }
 
+        // CREATE POST
         [HttpPost]
         public async Task<IActionResult> Create(VrstaRadaVm model)
         {
+            if (!IsAdmin()) return RedirectToAction("Login", "Auth");
+
+            if (model.TvrtkaId <= 0)
+                ModelState.AddModelError(nameof(model.TvrtkaId), "Tvrtka je obavezna.");
+
             if (!ModelState.IsValid)
             {
-                await LoadTvrtke(model.TvrtkaId);
+                var sveTvrtke = await _tvrtke.GetAllAsync(null, 1, 1000);
+                ViewBag.Tvrtke = sveTvrtke.Select(t => new TvrtkaVm { Id = t.Id, Name = t.Name }).ToList();
+                ViewBag.SelectedTvrtkaId = model.TvrtkaId;
                 return View(model);
             }
 
-            var client = Api();
-            var resp = await client.PostAsJsonAsync("/api/VrstaRada", new
+            await _vrste.CreateAsync(new MajstorFinder.DAL.Models.VrstaRada
             {
-                name = model.Name,
-                tvrtkaId = model.TvrtkaId
+                Name = model.Name,
+                TvrtkaId = model.TvrtkaId
             });
 
-            if (!resp.IsSuccessStatusCode)
-            {
-                ModelState.AddModelError("", "Greška pri spremanju vrste rada (možda duplikat).");
-                await LoadTvrtke();
-                return View(model);
-            }
-
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { tvrtkaId = model.TvrtkaId });
         }
 
-        // EDIT
+        // EDIT GET
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var client = Api();
-            var vrsta = await client.GetFromJsonAsync<VrstaRadaVm>($"/api/VrstaRada/{id}");
+            if (!IsAdmin()) return RedirectToAction("Login", "Auth");
+
+            var vrsta = await _vrste.GetByIdAsync(id);
             if (vrsta == null) return NotFound();
 
-            await LoadTvrtke(vrsta.TvrtkaId);
-            return View(vrsta);
+            var sveTvrtke = await _tvrtke.GetAllAsync(null, 1, 1000);
+            ViewBag.Tvrtke = sveTvrtke.Select(t => new TvrtkaVm { Id = t.Id, Name = t.Name }).ToList();
+            ViewBag.SelectedTvrtkaId = vrsta.TvrtkaId;
+
+            var vm = new VrstaRadaVm
+            {
+                Id = vrsta.Id,
+                Name = vrsta.Name,
+                TvrtkaId = vrsta.TvrtkaId
+            };
+
+            return View(vm);
         }
 
+        // EDIT POST
         [HttpPost]
         public async Task<IActionResult> Edit(int id, VrstaRadaVm model)
         {
+            if (!IsAdmin()) return RedirectToAction("Login", "Auth");
             if (id != model.Id) return BadRequest();
+
+            if (model.TvrtkaId <= 0)
+                ModelState.AddModelError(nameof(model.TvrtkaId), "Tvrtka je obavezna.");
 
             if (!ModelState.IsValid)
             {
-                await LoadTvrtke(model.TvrtkaId);
+                var sveTvrtke = await _tvrtke.GetAllAsync(null, 1, 1000);
+                ViewBag.Tvrtke = sveTvrtke.Select(t => new TvrtkaVm { Id = t.Id, Name = t.Name }).ToList();
+                ViewBag.SelectedTvrtkaId = model.TvrtkaId;
                 return View(model);
             }
 
-            var client = Api();
-            var resp = await client.PutAsJsonAsync($"/api/VrstaRada/{id}", new
+            var ok = await _vrste.UpdateAsync(id, new MajstorFinder.DAL.Models.VrstaRada
             {
-                id = model.Id,
-                name = model.Name,
-                tvrtkaId = model.TvrtkaId
+                Id = model.Id,
+                Name = model.Name,
+                TvrtkaId = model.TvrtkaId
             });
 
-            if (!resp.IsSuccessStatusCode)
+            if (!ok)
             {
-                ModelState.AddModelError("", "Greška pri ažuriranju (možda duplikat).");
-                await LoadTvrtke(model.TvrtkaId);
+                ModelState.AddModelError("", "Greška pri ažuriranju.");
                 return View(model);
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { tvrtkaId = model.TvrtkaId });
         }
 
-        // DELETE
+        // DELETE (POST)
         [HttpPost]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int id, int? tvrtkaId)
         {
-            var client = Api();
-            var resp = await client.DeleteAsync($"/api/VrstaRada/{id}");
+            if (!IsAdmin()) return RedirectToAction("Login", "Auth");
 
-            if (!resp.IsSuccessStatusCode)
-                TempData["Err"] = "Ne mogu obrisati vrstu rada (možda je vezana na zahtjeve).";
+            var ok = await _vrste.DeleteAsync(id);
+            if (!ok) TempData["Err"] = "Ne mogu obrisati (možda je vezano uz zahtjeve).";
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { tvrtkaId });
         }
 
-        private async Task LoadTvrtke(int? selectedId = null)
-        {
-            var client = Api();
-            var tvrtke = await client.GetFromJsonAsync<List<TvrtkaVm>>("/api/Tvrtka") ?? new List<TvrtkaVm>();
-            ViewBag.Tvrtke = tvrtke;
-            ViewBag.SelectedTvrtkaId = selectedId;
-        }
-
-
-        public async Task<IActionResult> Index(int? tvrtkaId, string? q, int page = 1, int pageSize = 5)
-        {
-            var jwt = HttpContext.Session.GetString("jwt");
-            var client = ApiClientFactory.CreateWithJwt(_factory, jwt);
-
-            // 1) tvrtke za dropdown
-            var tvrtke = await client.GetFromJsonAsync<List<TvrtkaVm>>("/api/Tvrtka") ?? new();
-            ViewBag.Tvrtke = tvrtke;
-            ViewBag.SelectedTvrtkaId = tvrtkaId;
-
-            // 2) vrste rada
-            var list = await client.GetFromJsonAsync<List<VrstaRadaVm>>("/api/VrstaRada") ?? new();
-
-            if (tvrtkaId.HasValue)
-                list = list.Where(x => x.TvrtkaId == tvrtkaId.Value).ToList();
-
-            if (!string.IsNullOrWhiteSpace(q))
-                list = list.Where(x => x.Name.Contains(q, StringComparison.OrdinalIgnoreCase)).ToList();
-
-            var total = list.Count;
-            var items = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-            ViewBag.Page = page;
-            ViewBag.TotalPages = (int)Math.Ceiling(total / (double)pageSize);
-            ViewBag.Q = q ?? "";
-
-            return View(items);
-        }
-
-
+        // DELETE AJAX (DELETE)
         [HttpDelete]
         public async Task<IActionResult> DeleteAjax(int id)
         {
-            var jwt = HttpContext.Session.GetString("jwt");
-            var client = ApiClientFactory.CreateWithJwt(_factory, jwt);
+            if (!IsAdmin()) return Forbid();
 
-            var res = await client.DeleteAsync($"/api/VrstaRada/{id}");
-
-            if (!res.IsSuccessStatusCode)
-                return BadRequest(await res.Content.ReadAsStringAsync());
+            var ok = await _vrste.DeleteAsync(id);
+            if (!ok) return BadRequest("Brisanje nije uspjelo.");
 
             return Ok();
         }
     }
 }
+

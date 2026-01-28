@@ -1,88 +1,99 @@
-﻿using MajstorFinder.WebApp.Helpers;
-using MajstorFinder.WebApp.Models;
+﻿using MajstorFinder.BLL.DTOs;
+using MajstorFinder.BLL.Interfaces;
+using MajstorFinder.BLL.Services; // ili .Services (ovisno gdje ti je interface)
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace MajstorFinder.WebApp.Controllers
 {
     public class ZahtjevController : Controller
     {
-        private readonly IHttpClientFactory _factory;
-        public ZahtjevController(IHttpClientFactory factory) => _factory = factory;
+        private readonly IZahtjevService _zahtjevi;
+        private readonly ITvrtkaService _tvrtke;
+        private readonly IVrstaRadaService _vrste;
 
-        private HttpClient Api()
+        public ZahtjevController(IZahtjevService zahtjevi, ITvrtkaService tvrtke, IVrstaRadaService vrste)
         {
-            var jwt = HttpContext.Session.GetString("jwt");
-            return ApiClientFactory.CreateWithJwt(_factory, jwt);
+            _zahtjevi = zahtjevi;
+            _tvrtke = tvrtke;
+            _vrste = vrste;
         }
 
+        private int CurrentUserId => HttpContext.Session.GetInt32("userId") ?? 0;
+        private bool IsAdmin => HttpContext.Session.GetString("isAdmin") == "1";
+
+        // KLIJENT: moji zahtjevi
         [HttpGet]
-        public IActionResult Create(int tvrtkaId, int vrstaRadaId)
+        public async Task<IActionResult> Moj()
         {
-            return View(new ZahtjevCreateVm
-            {
-                TvrtkaId = tvrtkaId,
-                VrstaRadaId = vrstaRadaId,
-                KorisnikId = 1
-            });
-        }
+            if (CurrentUserId == 0) return RedirectToAction("Login", "Auth");
 
-        [HttpPost]
-        public async Task<IActionResult> Create(ZahtjevCreateVm model)
-        {
-            if (!ModelState.IsValid) return View(model);
-
-            var client = Api();
-            var resp = await client.PostAsJsonAsync("/api/Zahtjev", new
-            {
-                description = model.Description,
-                korisnikId = model.KorisnikId,
-                tvrtkaId = model.TvrtkaId,
-                vrstaRadaId = model.VrstaRadaId,
-                status = "Poslano"
-            });
-
-            if (!resp.IsSuccessStatusCode)
-            {
-                ModelState.AddModelError("", "Greška pri slanju zahtjeva.");
-                return View(model);
-            }
-
-            return RedirectToAction(nameof(Moji));
-        }
-
-        public async Task<IActionResult> Moji()
-        {
-            var client = Api();
-            var all = await client.GetFromJsonAsync<List<ZahtjevVm>>("/api/Zahtjev") ?? new();
-            var mine = await client.GetFromJsonAsync<List<ZahtjevVm>>("/api/Zahtjev?korisnikId=1") ?? new();
-            return View(mine);
-        }
-
-
-        public async Task<IActionResult> AdminIndex()
-        {
-            var client = Api();
-            var list = await client.GetFromJsonAsync<List<ZahtjevVm>>("/api/Zahtjev") ?? new();
+            var list = await _zahtjevi.GetByKorisnikAsync(CurrentUserId);
             return View(list);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> ChangeStatus(int id, string status)
+        // KLIJENT: create forma
+        [HttpGet]
+        public async Task<IActionResult> Create(int tvrtkaId)
         {
-            var client = Api();
+            if (CurrentUserId == 0) return RedirectToAction("Login", "Auth");
 
-            var res = await client.PutAsJsonAsync($"/api/Zahtjev/{id}/status", new { status });
+            ViewBag.TvrtkaId = tvrtkaId;
+            ViewBag.Vrste = await _vrste.GetByTvrtkaAsync(tvrtkaId);
 
-            if (!res.IsSuccessStatusCode)
-                TempData["Err"] = await res.Content.ReadAsStringAsync();
-
-            return RedirectToAction(nameof(AdminIndex));
+            return View(new CreateZahtjevDto { TvrtkaId = tvrtkaId });
         }
 
+        // KLIJENT: create submit
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(CreateZahtjevDto dto)
+        {
+            if (CurrentUserId == 0) return RedirectToAction("Login", "Auth");
 
+            if (!ModelState.IsValid)
+            {
+                ViewBag.TvrtkaId = dto.TvrtkaId;
+                ViewBag.Vrste = await _vrste.GetByTvrtkaAsync(dto.TvrtkaId);
+                return View(dto);
+            }
 
+            await _zahtjevi.CreateAsync(CurrentUserId, dto);
+            return RedirectToAction(nameof(Moj));
+        }
 
+        // ADMIN: svi zahtjevi
+        [HttpGet]
+        public async Task<IActionResult> Index()
+        {
+            if (!IsAdmin) return Forbid();
 
+            var list = await _zahtjevi.GetAllAsync();
+            return View(list);
+        }
+
+        // ADMIN: promjena statusa
+        [HttpPost]
+        public async Task<IActionResult> UpdateStatus(int id, UpdateZahtjevStatusDto dto)
+        {
+            if (!IsAdmin) return Forbid();
+            if (string.IsNullOrWhiteSpace(dto.Status)) return BadRequest("Status je obavezan.");
+
+            await _zahtjevi.UpdateStatusAsync(id, dto.Status);
+            return Ok();
+        }
+
+        // ADMIN: delete
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            if (!IsAdmin) return Forbid();
+            await _zahtjevi.DeleteAsync(id);
+            return RedirectToAction(nameof(Index));
+        }
+    }
+
+    public class UpdateZahtjevStatusDto
+    {
+        public string Status { get; set; } = "";
     }
 }

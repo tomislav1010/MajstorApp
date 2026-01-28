@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MajstorFinder.BLL.DTOs
 {
-    public class CreateZahtijevDto
+    public class CreateZahtjevDto
     {
         public int TvrtkaId { get; set; }
         public int VrstaRadaId { get; set; }
