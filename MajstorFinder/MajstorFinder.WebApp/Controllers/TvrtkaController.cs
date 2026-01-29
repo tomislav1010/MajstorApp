@@ -12,11 +12,14 @@ namespace MajstorFinder.WebApp.Controllers
     {
         private readonly ITvrtkaService _tvrtkaService;
         private readonly ILokacijaService _lokacijaService;
+        private readonly ITvrtkaLokacijaService _tvrtkaLokacije;
 
-        public TvrtkaController(ITvrtkaService tvrtkaService, ILokacijaService lokacijaService)
+
+        public TvrtkaController(ITvrtkaService tvrtkaService, ILokacijaService lokacijaService, ITvrtkaLokacijaService tvrtkaLokacije)
         {
             _tvrtkaService = tvrtkaService;
             _lokacijaService = lokacijaService;
+            _tvrtkaLokacije = tvrtkaLokacije;
         }
 
         // LIST + search + paging (sad je "pravo" paging u BLL-u, ne klijentski)
@@ -149,13 +152,16 @@ namespace MajstorFinder.WebApp.Controllers
             return View(vm);
         }
 
-        // LOKACIJE submit: ovdje je najbolje imati poseban service za M-N (TvrtkaLokacija)
-        // Za Dan 1 ćemo staviti placeholder i sutra (Dan 2) to selimo u TvrtkaLokacijaService
         [HttpPost]
         public async Task<IActionResult> Lokacije(TvrtkaLokacijeVm model)
         {
-            // TODO (Dan 2): implementirati TvrtkaLokacijaService i ovdje samo zvati servis
-            // Za sada: ostavi prazno ili vrati na Index dok ne napravimo servis
+            var selectedIds = model.Lokacije
+                .Where(x => x.Selected)
+                .Select(x => x.Id)
+                .ToList();
+
+            await _tvrtkaLokacije.SetLokacijeForTvrtkaAsync(model.TvrtkaId, selectedIds);
+
             return RedirectToAction(nameof(Index));
         }
     }

@@ -29,6 +29,7 @@ namespace MajstorFinder.WebApp.Controllers
             // spremi user u session (umjesto jwt)
             HttpContext.Session.SetInt32("userId", user.Id);
             HttpContext.Session.SetString("username", user.Username);
+            bool isAdmin = HttpContext.Session.GetString("isAdmin") == "1";
 
             // ako imaš u tablici ulogu/isAdmin, spremi i to
             // HttpContext.Session.SetString("role", user.Role);

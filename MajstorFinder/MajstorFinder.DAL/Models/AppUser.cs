@@ -9,6 +9,8 @@
         public byte[] PasswordSalt { get; set; } = null!;
         public int Iterations { get; set; }
         public DateTime CreatedAt { get; set; }
+
+        public bool IsAdmin { get; set; }
     }
 
 }
