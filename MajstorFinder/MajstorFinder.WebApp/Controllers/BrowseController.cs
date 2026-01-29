@@ -1,4 +1,6 @@
-﻿using MajstorFinder.WebApp.Helpers;
+﻿using MajstorFinder.BLL.Interfaces;
+using MajstorFinder.DAL.Models;
+using MajstorFinder.WebApp.Helpers;
 using MajstorFinder.WebApp.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,76 +8,91 @@ namespace MajstorFinder.WebApp.Controllers
 {
     public class BrowseController : Controller
     {
-        private readonly IHttpClientFactory _factory;
-        public BrowseController(IHttpClientFactory factory) => _factory = factory;
+        private readonly ITvrtkaService _tvrtke;
+        private readonly ILokacijaService _lokacije;
+        private readonly IVrstaRadaService _vrste;
 
-        private HttpClient Api()
+        public BrowseController(ITvrtkaService tvrtke, ILokacijaService lokacije, IVrstaRadaService vrste)
         {
-            var jwt = HttpContext.Session.GetString("jwt");
-            return ApiClientFactory.CreateWithJwt(_factory, jwt);
+            _tvrtke = tvrtke;
+            _lokacije = lokacije;
+            _vrste = vrste;
         }
 
+        // KLIJENT: browse + filter
         public async Task<IActionResult> Index(int? lokacijaId, int? vrstaRadaId)
         {
-            var client = Api();
+            // dropdown podaci
+            var lokacije = await _lokacije.GetAllAsync(null, 1, 1000);
+            var vrste = await _vrste.GetAllAsync(null, 1, 1000);
 
-            var lokacije = await client.GetFromJsonAsync<List<LokacijaVm>>("/api/Lokacija") ?? new();
-            var vrste = await client.GetFromJsonAsync<List<VrstaRadaVm>>("/api/VrstaRada") ?? new();
-            var tvrtke = await client.GetFromJsonAsync<List<TvrtkaVm>>("/api/Tvrtka") ?? new();
+            // tvrtke (za minimum uzmemo sve)
+            var tvrtke = await _tvrtke.GetAllAsync(null, 1, 2000);
 
-            // MINIMUM filter (brzo): filtriramo klijentski
+            // filter po vrsti rada
             if (vrstaRadaId.HasValue)
-                tvrtke = tvrtke.Where(t => vrste.Any(v => v.Id == vrstaRadaId && v.TvrtkaId == t.Id)).ToList();
+            {
+                tvrtke = tvrtke
+                    .Where(t => vrste.Any(v => v.Id == vrstaRadaId.Value && v.TvrtkaId == t.Id))
+                    .ToList();
+            }
 
+            // filter po lokaciji (koristi ITvrtkaService.GetLokacijeAsync)
             if (lokacijaId.HasValue)
             {
-                
-                    var filtered = new List<TvrtkaVm>();
+                var filtered = new List<Tvrtka>();
 
-                    foreach (var t in tvrtke)
-                    {
-                        var loks = await client.GetFromJsonAsync<List<LokacijaVm>>($"/api/Tvrtka/{t.Id}/lokacije") ?? new();
+                foreach (var t in tvrtke)
+                {
+                    var loks = await _tvrtke.GetLokacijeAsync(t.Id);
+                    if (loks.Any(l => l.Id == lokacijaId.Value))
+                        filtered.Add(t);
+                }
 
-                        if (loks.Any(x => x.Id == lokacijaId.Value))
-                            filtered.Add(t);
-                    }
-
-                    tvrtke = filtered;
-            
+                tvrtke = filtered;
             }
 
             var vm = new BrowseVm
             {
                 LokacijaId = lokacijaId,
                 VrstaRadaId = vrstaRadaId,
-                Lokacije = lokacije,
-                VrsteRada = vrste,
-                Tvrtke = tvrtke
+                Lokacije = lokacije.Select(l => new LokacijaVm { Id = l.Id, Name = l.Name }).ToList(),
+                VrsteRada = vrste.Select(v => new VrstaRadaVm { Id = v.Id, Name = v.Name, TvrtkaId = v.TvrtkaId }).ToList(),
+                Tvrtke = tvrtke.Select(t => new TvrtkaVm
+                {
+                    Id = t.Id,
+                    Name = t.Name,
+                    Description = t.Description,
+                    Phone = t.Phone,
+                    Email = t.Email
+                }).ToList()
             };
 
             return View(vm);
         }
 
+        // KLIJENT: details tvrtke
         public async Task<IActionResult> Details(int id)
         {
-            var client = Api();
-
-            var tvrtka = await client.GetFromJsonAsync<TvrtkaVm>($"/api/Tvrtka/{id}");
+            var tvrtka = await _tvrtke.GetByIdAsync(id);
             if (tvrtka == null) return NotFound();
 
-            // vrste rada za tvrtku
-            var sveVrste = await client.GetFromJsonAsync<List<VrstaRadaVm>>("/api/VrstaRada") ?? new();
-            var vrste = sveVrste.Where(v => v.TvrtkaId == id).ToList();
+            var vrste = await _vrste.GetByTvrtkaAsync(id);
+            var lokacije = await _tvrtke.GetLokacijeAsync(id);
 
-            // lokacije za tvrtku (ti već imaš endpoint u WebAPI-ju)
-            var lokacije = await client.GetFromJsonAsync<List<LokacijaVm>>($"/api/Tvrtka/{id}/lokacije") ?? new();
+            ViewBag.Vrste = vrste.Select(v => new VrstaRadaVm { Id = v.Id, Name = v.Name, TvrtkaId = v.TvrtkaId }).ToList();
+            ViewBag.Lokacije = lokacije.Select(l => new LokacijaVm { Id = l.Id, Name = l.Name }).ToList();
 
-            ViewBag.Vrste = vrste;
-            ViewBag.Lokacije = lokacije;
+            var vm = new TvrtkaVm
+            {
+                Id = tvrtka.Id,
+                Name = tvrtka.Name,
+                Description = tvrtka.Description,
+                Phone = tvrtka.Phone,
+                Email = tvrtka.Email
+            };
 
-            return View(tvrtka);
+            return View(vm);
         }
-
-
     }
 }

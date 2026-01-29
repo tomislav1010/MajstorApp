@@ -1,4 +1,6 @@
-﻿using MajstorFinder.WebApp.Helpers;
+﻿using MajstorFinder.BLL.Interfaces;
+using MajstorFinder.DAL.Models;
+using MajstorFinder.WebApp.Helpers;
 using MajstorFinder.WebApp.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,26 +8,33 @@ namespace MajstorFinder.WebApp.Controllers
 {
     public class LokacijaController : AdminController
     {
-        private readonly IHttpClientFactory _factory;
-        public LokacijaController(IHttpClientFactory factory) => _factory = factory;
+        private readonly ILokacijaService _lokacije;
 
-        private HttpClient Api()
+        public LokacijaController(ILokacijaService lokacije)
         {
-            var jwt = HttpContext.Session.GetString("jwt");
-            return ApiClientFactory.CreateWithJwt(_factory, jwt);
+            _lokacije = lokacije;
         }
 
-        /*public async Task<IActionResult> Index(string? q)
+        // LIST + SEARCH + PAGING
+        public async Task<IActionResult> Index(string? q, int page = 1, int pageSize = 5)
         {
-            var client = Api();
-            var lokacije = await client.GetFromJsonAsync<List<LokacijaVm>>("/api/Lokacija") ?? new();
+            var list = await _lokacije.GetAllAsync(q, page, pageSize);
+            var total = await _lokacije.CountAsync(q);
 
-            if (!string.IsNullOrWhiteSpace(q))
-                lokacije = lokacije.Where(l => l.Name.Contains(q, StringComparison.OrdinalIgnoreCase)).ToList();
-
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalPages = (int)Math.Ceiling(total / (double)pageSize);
             ViewBag.Q = q ?? "";
-            return View(lokacije);
-        }*/
+
+            // map u VM (da view ne koristi DAL direktno)
+            var vm = list.Select(l => new LokacijaVm
+            {
+                Id = l.Id,
+                Name = l.Name
+            }).ToList();
+
+            return View(vm);
+        }
 
         [HttpGet]
         public IActionResult Create() => View(new LokacijaVm());
@@ -35,14 +44,10 @@ namespace MajstorFinder.WebApp.Controllers
         {
             if (!ModelState.IsValid) return View(model);
 
-            var client = Api();
-            var resp = await client.PostAsJsonAsync("/api/Lokacija", new { name = model.Name });
-
-            if (!resp.IsSuccessStatusCode)
+            await _lokacije.CreateAsync(new Lokacija
             {
-                ModelState.AddModelError("", "Greška pri spremanju (možda duplikat).");
-                return View(model);
-            }
+                Name = model.Name
+            });
 
             return RedirectToAction(nameof(Index));
         }
@@ -50,10 +55,14 @@ namespace MajstorFinder.WebApp.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var client = Api();
-            var lok = await client.GetFromJsonAsync<LokacijaVm>($"/api/Lokacija/{id}");
-            if (lok == null) return NotFound();
-            return View(lok);
+            var l = await _lokacije.GetByIdAsync(id);
+            if (l == null) return NotFound();
+
+            return View(new LokacijaVm
+            {
+                Id = l.Id,
+                Name = l.Name
+            });
         }
 
         [HttpPost]
@@ -62,12 +71,15 @@ namespace MajstorFinder.WebApp.Controllers
             if (id != model.Id) return BadRequest();
             if (!ModelState.IsValid) return View(model);
 
-            var client = Api();
-            var resp = await client.PutAsJsonAsync($"/api/Lokacija/{id}", new { id = model.Id, name = model.Name });
-
-            if (!resp.IsSuccessStatusCode)
+            var ok = await _lokacije.UpdateAsync(id, new Lokacija
             {
-                ModelState.AddModelError("", "Greška pri ažuriranju (možda duplikat).");
+                Id = model.Id,
+                Name = model.Name
+            });
+
+            if (!ok)
+            {
+                ModelState.AddModelError("", "Greška pri ažuriranju.");
                 return View(model);
             }
 
@@ -77,47 +89,18 @@ namespace MajstorFinder.WebApp.Controllers
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
-            var client = Api();
-            var resp = await client.DeleteAsync($"/api/Lokacija/{id}");
-
-            if (!resp.IsSuccessStatusCode)
-                TempData["Err"] = "Ne mogu obrisati lokaciju (možda je vezana uz tvrtke).";
+            var ok = await _lokacije.DeleteAsync(id);
+            if (!ok) TempData["Err"] = "Ne mogu obrisati lokaciju (možda je vezana uz tvrtke).";
 
             return RedirectToAction(nameof(Index));
         }
 
-
-        public async Task<IActionResult> Index(string? q, int page = 1, int pageSize = 5)
-        {
-            var jwt = HttpContext.Session.GetString("jwt");
-            var client = ApiClientFactory.CreateWithJwt(_factory, jwt);
-
-            var list = await client.GetFromJsonAsync<List<LokacijaVm>>("/api/Lokacija") ?? new();
-
-            if (!string.IsNullOrWhiteSpace(q))
-                list = list.Where(x => x.Name.Contains(q, StringComparison.OrdinalIgnoreCase)).ToList();
-
-            var total = list.Count;
-            var items = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-            ViewBag.Page = page;
-            ViewBag.TotalPages = (int)Math.Ceiling(total / (double)pageSize);
-            ViewBag.Q = q ?? "";
-
-            return View(items);
-        }
-
-
+        // AJAX DELETE
         [HttpDelete]
         public async Task<IActionResult> DeleteAjax(int id)
         {
-            var jwt = HttpContext.Session.GetString("jwt");
-            var client = ApiClientFactory.CreateWithJwt(_factory, jwt);
-
-            var res = await client.DeleteAsync($"/api/Lokacija/{id}");
-
-            if (!res.IsSuccessStatusCode)
-                return BadRequest(await res.Content.ReadAsStringAsync());
+            var ok = await _lokacije.DeleteAsync(id);
+            if (!ok) return BadRequest("Ne mogu obrisati lokaciju.");
 
             return Ok();
         }

@@ -1,4 +1,6 @@
-﻿using MajstorFinder.WebApp.Helpers;
+﻿using MajstorFinder.BLL.DTOs;
+using MajstorFinder.BLL.Interfaces;
+using MajstorFinder.WebApp.Helpers;
 using MajstorFinder.WebApp.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,34 +8,45 @@ namespace MajstorFinder.WebApp.Controllers
 {
     public class ProfileController : Controller
     {
-        private readonly IHttpClientFactory _factory;
-        public ProfileController(IHttpClientFactory factory) => _factory = factory;
+        private readonly IUserService _users;
+        public ProfileController(IUserService users) => _users = users;
 
-        private HttpClient Api()
-        {
-            var jwt = HttpContext.Session.GetString("jwt");
-            return ApiClientFactory.CreateWithJwt(_factory, jwt);
-        }
-
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var client = Api();
+            var userId = HttpContext.Session.GetInt32("userId") ?? 0;
+            if (userId == 0) return RedirectToAction("Login", "Auth");
 
-            // ako imaš endpoint /api/User/me (idealno)
-            var me = await client.GetFromJsonAsync<AppUserVm>("/api/User/me");
-            return View(me);
+            var u = await _users.GetByIdAsync(userId);
+            if (u == null) return RedirectToAction("Logout", "Auth");
+
+            var dto = new UpdateUserDto
+            {
+                Username = u.Username,
+                Email = u.Email,
+                // Phone = u.Phone
+            };
+
+            return View(dto);
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateAjax([FromBody] AppUserVm model)
+        public async Task<IActionResult> Index(UpdateUserDto dto)
         {
-            var client = Api();
-            var res = await client.PutAsJsonAsync("/api/User/me", model);
+            var userId = HttpContext.Session.GetInt32("userId") ?? 0;
+            if (userId == 0) return RedirectToAction("Login", "Auth");
 
-            if (!res.IsSuccessStatusCode)
-                return BadRequest(await res.Content.ReadAsStringAsync());
+            if (!ModelState.IsValid) return View(dto);
 
-            return Ok("Spremljeno");
+            var ok = await _users.UpdateAsync(userId, dto);
+            if (!ok)
+            {
+                ModelState.AddModelError("", "Email/username već postoji ili korisnik ne postoji.");
+                return View(dto);
+            }
+
+            TempData["Ok"] = "Profil ažuriran.";
+            return RedirectToAction(nameof(Index));
         }
     }
 }
