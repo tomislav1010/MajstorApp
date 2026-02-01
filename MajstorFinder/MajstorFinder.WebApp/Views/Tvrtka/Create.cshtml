@@ -1,18 +1,50 @@
-﻿@model TvrtkaVm
+﻿@model MajstorFinder.WebApp.Models.TvrtkaVm
 
-<h2>Nova tvrtka</h2>
+@{
+    ViewData["Title"] = "Nova tvrtka";
+}
 
-<form method="post">
-    <div asp-validation-summary="All"></div>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Nova tvrtka</h2>
+    <a class="btn btn-outline-secondary" asp-action="Index">← Nazad</a>
+</div>
 
-    <div>
-        <label>Naziv</label>
-        <input asp-for="Name" />
-        <span asp-validation-for="Name"></span>
+<form method="post" class="card shadow-sm">
+    <div class="card-body">
+
+        <div class="mb-3">
+            <label class="form-label">Naziv *</label>
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Opis</label>
+            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+            <span asp-validation-for="Description" class="text-danger small"></span>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Telefon</label>
+                <input asp-for="Phone" class="form-control" />
+                <span asp-validation-for="Phone" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Email</label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+        </div>
+
+        <div asp-validation-summary="All" class="text-danger small"></div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Spremi</button>
+            <a class="btn btn-outline-secondary" asp-action="Index">Odustani</a>
+        </div>
     </div>
-
-    <button type="submit">Spremi</button>
-    <a asp-action="Index">Nazad</a>
 </form>
 
 @section Scripts {

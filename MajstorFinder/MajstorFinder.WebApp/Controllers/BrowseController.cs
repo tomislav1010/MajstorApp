@@ -70,7 +70,11 @@ namespace MajstorFinder.WebApp.Controllers
             var tvrtka = await _tvrtke.GetByIdAsync(id);
             if (tvrtka == null) return NotFound();
 
-            // map u VM (mora odgovarati @model u viewu)
+            // Učitaj povezane podatke
+            var vrste = await _vrste.GetByTvrtkaAsync(id);
+            var lokacije = await _tvrtkaLokacije.GetLokacijeForTvrtkaAsync(id);
+
+            // map Tvrtka -> VM
             var vm = new TvrtkaVm
             {
                 Id = tvrtka.Id,
@@ -79,6 +83,20 @@ namespace MajstorFinder.WebApp.Controllers
                 Phone = tvrtka.Phone,
                 Email = tvrtka.Email
             };
+
+            // OVO TI JE FALILO ⬇️
+            ViewBag.Vrste = vrste.Select(v => new VrstaRadaVm
+            {
+                Id = v.Id,
+                Name = v.Name,
+                TvrtkaId = v.TvrtkaId
+            }).ToList();
+
+            ViewBag.Lokacije = lokacije.Select(l => new LokacijaVm
+            {
+                Id = l.Id,
+                Name = l.Name
+            }).ToList();
 
             return View(vm);
         }
