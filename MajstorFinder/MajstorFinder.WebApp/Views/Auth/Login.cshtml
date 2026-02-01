@@ -1,9 +1,9 @@
 ﻿@model LoginViewModel
 
-
 @{
     Layout = null;
 }
+
 <style>
     * {
         margin: 0;
@@ -11,7 +11,6 @@
         box-sizing: border-box;
     }
 
-    /* Ne diramo globalni body iz Layouta previše, ali ga ovdje stiliziramo za login stranicu */
     body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -27,7 +26,7 @@
         border-radius: 16px;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         width: 100%;
-        max-width: 520px; /* bilo 440px */
+        max-width: 520px;
         padding: 48px 40px;
     }
 
@@ -137,8 +136,7 @@
         font-size: 14px;
     }
 
-        .divider::before,
-        .divider::after {
+        .divider::before, .divider::after {
             content: '';
             flex: 1;
             height: 1px;
@@ -180,15 +178,17 @@
 
 <div class="login-container">
     <div class="login-header">
-        <h2>Dobro dosli nazad</h2>
-        <p>Ulogirajte se sa svojim racunom</p>
+        <h2>Dobro došli nazad</h2>
+        <p>Ulogirajte se svojim računom</p>
     </div>
 
-    <form method="post">
+    <form asp-action="Login" method="post">
+        @Html.AntiForgeryToken()
+
         <div class="form-group">
             <label asp-for="Email">Email</label>
             <div class="input-wrapper">
-                <input asp-for="Email" type="email" placeholder="your@email.com" />
+                <input asp-for="Email" type="email" placeholder="ime@domena.com" />
             </div>
             <span asp-validation-for="Email" class="validation-error"></span>
         </div>
@@ -196,26 +196,25 @@
         <div class="form-group">
             <label asp-for="Password">Lozinka</label>
             <div class="input-wrapper">
-                <input asp-for="Password" type="password" placeholder="Enter your password" />
+                <input asp-for="Password" type="password" placeholder="Unesite lozinku" />
             </div>
             <span asp-validation-for="Password" class="validation-error"></span>
         </div>
 
-        <button type="submit" class="btn-login">Sign In</button>
+        <button type="submit" class="btn-login">Prijava</button>
 
         <div asp-validation-summary="All" class="validation-summary"></div>
     </form>
 
-
-
     <div class="divider">
-        <span>or</span>
+        <span>ili</span>
     </div>
 
     <div class="secondary-actions">
         <span style="color: #6b7280; font-size: 14px;">Nemate račun?</span>
         <a asp-controller="Profile" asp-action="Create"> Kreirajte ga</a>
     </div>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

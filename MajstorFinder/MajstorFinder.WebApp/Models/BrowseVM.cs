@@ -8,5 +8,8 @@
         public List<LokacijaVm> Lokacije { get; set; } = new();
         public List<VrstaRadaVm> VrsteRada { get; set; } = new();
         public List<TvrtkaVm> Tvrtke { get; set; } = new();
+
+        public int Page { get; set; } = 1;
+        public int TotalPages { get; set; } = 1;
     }
 }

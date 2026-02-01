@@ -1,0 +1,15 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace MajstorFinder.BLL.Interfaces
+{
+
+        public interface IKorisnikService
+        {
+            Task<int> GetOrCreateKorisnikIdAsync(string email, string name);
+        }
+    }
+

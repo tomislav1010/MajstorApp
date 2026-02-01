@@ -21,6 +21,7 @@ builder.Services.AddScoped<IVrstaRadaService, VrstaRadaService>();
 builder.Services.AddScoped<IZahtjevService, ZahtjevService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITvrtkaLokacijaService, TvrtkaLokacijaService>();
+builder.Services.AddScoped<IKorisnikService, KorisnikService>();
 
 
 builder.Services.AddDistributedMemoryCache();

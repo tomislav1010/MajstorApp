@@ -3,7 +3,6 @@
 <h2>Pretraga</h2>
 
 <form method="get" asp-controller="Browse" asp-action="Index" class="row g-2 mb-4">
-
     <div class="col-md-4">
         <select name="lokacijaId" class="form-select">
             <option value="">-- sve lokacije --</option>
@@ -31,7 +30,6 @@
     <div class="col-md-2">
         <button type="submit" class="btn btn-primary w-100">Filtriraj</button>
     </div>
-
 </form>
 
 <table class="table table-striped table-hover align-middle">
@@ -51,9 +49,63 @@
                 <td>@t.Email</td>
                 <td>@t.Phone</td>
                 <td class="text-end">
-                    <a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@t.Id">Detalji</a>
+                    <a class="btn btn-sm btn-outline-primary"
+                       asp-action="Details"
+                       asp-route-id="@t.Id">
+                        Detalji
+                    </a>
                 </td>
             </tr>
         }
     </tbody>
 </table>
+
+<!-- PAGING -->
+@if (Model.TotalPages > 1)
+{
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+
+            <!-- PRETHODNA -->
+            <li class="page-item @(Model.Page == 1 ? "disabled" : "")">
+                <a class="page-link"
+                   asp-action="Index"
+                   asp-route-page="@(Model.Page - 1)"
+                   asp-route-lokacijaId="@Model.LokacijaId"
+                   asp-route-vrstaRadaId="@Model.VrstaRadaId">
+                    ← Prethodna
+                </a>
+            </li>
+
+            <!-- BROJEVI STRANICA -->
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(Model.Page == i ? "active" : "")">
+                    <a class="page-link"
+                       asp-action="Index"
+                       asp-route-page="@i"
+                       asp-route-lokacijaId="@Model.LokacijaId"
+                       asp-route-vrstaRadaId="@Model.VrstaRadaId">
+                        @i
+                    </a>
+                </li>
+            }
+
+            <!-- SLJEDEĆA -->
+            <li class="page-item @(Model.Page == Model.TotalPages ? "disabled" : "")">
+                <a class="page-link"
+                   asp-action="Index"
+                   asp-route-page="@(Model.Page + 1)"
+                   asp-route-lokacijaId="@Model.LokacijaId"
+                   asp-route-vrstaRadaId="@Model.VrstaRadaId">
+                    Sljedeća →
+                </a>
+            </li>
+
+        </ul>
+
+        <p class="text-center text-muted mt-2">
+            Stranica @Model.Page od @Model.TotalPages
+        </p>
+    </nav>
+}

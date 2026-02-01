@@ -4,6 +4,9 @@ using MajstorFinder.WebApp.Helpers;
 using MajstorFinder.WebApp.Models;
 using Microsoft.AspNetCore.Mvc;
 
+using MajstorFinder.WebApp.Models;
+using Microsoft.AspNetCore.Mvc;
+
 namespace MajstorFinder.WebApp.Controllers
 {
     public class BrowseController : Controller
@@ -11,7 +14,7 @@ namespace MajstorFinder.WebApp.Controllers
         private readonly ITvrtkaService _tvrtke;
         private readonly IVrstaRadaService _vrste;
         private readonly ILokacijaService _lokacije;
-        private readonly ITvrtkaLokacijaService _tvrtkaLokacije; // relacija M-N
+        private readonly ITvrtkaLokacijaService _tvrtkaLokacije;
 
         public BrowseController(
             ITvrtkaService tvrtke,
@@ -25,15 +28,24 @@ namespace MajstorFinder.WebApp.Controllers
             _tvrtkaLokacije = tvrtkaLokacije;
         }
 
-        // KLIJENT: pretraga/filter
-        public async Task<IActionResult> Index(int? lokacijaId, int? vrstaRadaId)
+        [HttpGet]
+        public async Task<IActionResult> Index(
+            int? lokacijaId,
+            int? vrstaRadaId,
+            int page = 1,
+            int pageSize = 6)
         {
-            // dropdown podaci (uzmi sve - za browse je ok)
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 6;
+
+            // dropdown podaci
             var lokacije = await _lokacije.GetAllAsync(q: null, page: 1, pageSize: 1000);
             var vrste = await _vrste.GetAllAsync(tvrtkaId: null, page: 1, pageSize: 1000);
+
+            // tvrtke (filtriramo pa paginiramo)
             var tvrtke = await _tvrtke.GetAllAsync(q: null, page: 1, pageSize: 1000);
 
-            // filter po vrsti rada: uzmi tvrtke koje imaju tu vrstu rada
+            // FILTER: vrsta rada
             if (vrstaRadaId.HasValue)
             {
                 var vrsta = vrste.FirstOrDefault(v => v.Id == vrstaRadaId.Value);
@@ -42,39 +54,48 @@ namespace MajstorFinder.WebApp.Controllers
                     : tvrtke.Where(t => t.Id == vrsta.TvrtkaId).ToList();
             }
 
-            // filter po lokaciji: relacija tvrtka-lokacija
+            // FILTER: lokacija (tvrtke koje rade na toj lokaciji)
             if (lokacijaId.HasValue)
             {
-                // ISPRAVNO: trebaš TVRTKA ID-eve za odabranu lokaciju
                 var tvrtkaIds = await _tvrtkaLokacije.GetLokacijeIdsForTvrtkaAsync(lokacijaId.Value);
                 tvrtke = tvrtke.Where(t => tvrtkaIds.Contains(t.Id)).ToList();
             }
 
-            // map u VM (dok ne uvedemo AutoMapper)
+            // PAGING
+            int totalItems = tvrtke.Count;
+            int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            if (totalPages == 0) totalPages = 1;
+            if (page > totalPages) page = totalPages;
+
+            var pageItems = tvrtke
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
             var vm = new BrowseVm
             {
                 LokacijaId = lokacijaId,
                 VrstaRadaId = vrstaRadaId,
                 Lokacije = lokacije.Select(ToLokacijaVm).ToList(),
                 VrsteRada = vrste.Select(ToVrstaRadaVm).ToList(),
-                Tvrtke = tvrtke.Select(ToTvrtkaVm).ToList()
+                Tvrtke = pageItems.Select(ToTvrtkaVm).ToList(),
+
+                Page = page,
+                TotalPages = totalPages
             };
 
             return View(vm);
         }
 
-
-        // KLIJENT: detalji tvrtke + vrste rada + lokacije
+        [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
             var tvrtka = await _tvrtke.GetByIdAsync(id);
             if (tvrtka == null) return NotFound();
 
-            // Učitaj povezane podatke
             var vrste = await _vrste.GetByTvrtkaAsync(id);
             var lokacije = await _tvrtkaLokacije.GetLokacijeForTvrtkaAsync(id);
 
-            // map Tvrtka -> VM
             var vm = new TvrtkaVm
             {
                 Id = tvrtka.Id,
@@ -84,24 +105,13 @@ namespace MajstorFinder.WebApp.Controllers
                 Email = tvrtka.Email
             };
 
-            // OVO TI JE FALILO ⬇️
-            ViewBag.Vrste = vrste.Select(v => new VrstaRadaVm
-            {
-                Id = v.Id,
-                Name = v.Name,
-                TvrtkaId = v.TvrtkaId
-            }).ToList();
-
-            ViewBag.Lokacije = lokacije.Select(l => new LokacijaVm
-            {
-                Id = l.Id,
-                Name = l.Name
-            }).ToList();
+            ViewBag.Vrste = vrste.Select(ToVrstaRadaVm).ToList();
+            ViewBag.Lokacije = lokacije.Select(ToLokacijaVm).ToList();
 
             return View(vm);
         }
 
-        // ===== map metode (privremeno) =====
+        // ===== map metode =====
         private static TvrtkaVm ToTvrtkaVm(MajstorFinder.DAL.Models.Tvrtka t) => new()
         {
             Id = t.Id,

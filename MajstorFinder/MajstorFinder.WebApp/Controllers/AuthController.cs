@@ -3,20 +3,29 @@ using Microsoft.AspNetCore.Mvc;
 using MajstorFinder.BLL.Interfaces;
 
 
+using MajstorFinder.BLL.Interfaces;
+using MajstorFinder.WebApp.Models;
+using Microsoft.AspNetCore.Mvc;
+
 namespace MajstorFinder.WebApp.Controllers
 {
     public class AuthController : Controller
     {
         private readonly IAuthService _auth;
+        private readonly IKorisnikService _korisnici;
 
-        public AuthController(IAuthService auth) => _auth = auth;
+        public AuthController(IAuthService auth, IKorisnikService korisnici)
+        {
+            _auth = auth;
+            _korisnici = korisnici;
+        }
 
         [HttpGet]
         public IActionResult Login() => View(new LoginViewModel());
 
-
         [HttpPost]
-        public IActionResult Login(LoginViewModel model)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (!ModelState.IsValid)
                 return View(model);
@@ -29,8 +38,12 @@ namespace MajstorFinder.WebApp.Controllers
                 return View(model);
             }
 
-            // SESSION (bez JWT-a, kako profesor traži)
-            HttpContext.Session.SetInt32("userId", user.Id);
+            // ✅ KORISNIK TABLICA (za Zahtjev.KorisnikId)
+            int korisnikId = await _korisnici.GetOrCreateKorisnikIdAsync(user.Email, user.Username);
+
+            // SESSION (bez JWT-a)
+            HttpContext.Session.SetInt32("userId", korisnikId);          // <-- BITNO: ovo je Korisnik.Id
+            HttpContext.Session.SetInt32("appUserId", user.Id);          // opcionalno (ako ti zatreba)
             HttpContext.Session.SetString("username", user.Username);
             HttpContext.Session.SetString("isAdmin", user.IsAdmin ? "1" : "0");
 
@@ -40,10 +53,10 @@ namespace MajstorFinder.WebApp.Controllers
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();
-            return RedirectToAction("Login");
+            return RedirectToAction(nameof(Login));
         }
 
-        // ovo možeš obrisati ako ti ne treba
+        // obriši ako ne koristiš
         public IActionResult AdminLoginPreview() => View("Auth");
     }
 }
