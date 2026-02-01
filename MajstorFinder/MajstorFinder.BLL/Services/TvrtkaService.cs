@@ -80,16 +80,11 @@ namespace MajstorFinder.BLL.Services
         public async Task<List<Lokacija>> GetLokacijeAsync(int tvrtkaId)
         {
             // Učitaj tvrtku zajedno s lokacijama (M-N veza)
-            var tvrtka = await _db.Tvrtkas
-                .Include(t => t.Lokacijas)
-                .FirstOrDefaultAsync(t => t.Id == tvrtkaId);
-
-            if (tvrtka == null)
-                return new List<Lokacija>();
-
-            return tvrtka.Lokacijas
+            return await _db.TvrtkaLokacijas
+                .Where(x => x.TvrtkaId == tvrtkaId)
+                .Select(x => x.Lokacija)
                 .OrderBy(l => l.Name)
-                .ToList();
+                .ToListAsync();
         }
     }
 }

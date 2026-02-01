@@ -1,7 +1,9 @@
 ﻿@model TvrtkaVm
 @{
-    var vrste = (List<VrstaRadaVm>)ViewBag.Vrste;
-    var lokacije = (List<LokacijaVm>)ViewBag.Lokacije;
+    var vrste = (List<VrstaRadaVm>)ViewBag.Vrste as
+    List<VrstaRadaVm> ?? new List<VrstaRadaVm>();
+    var lokacije = (List<LokacijaVm>)ViewBag.Lokacije as
+    List<LokacijaVm> ?? new List<LokacijaVm>();
 }
 
 <h2>@Model.Name</h2>
@@ -65,7 +67,7 @@
                            asp-controller="Zahtjev"
                            asp-action="Create"
                            asp-route-tvrtkaId="@Model.Id"
-                           asp-route-vrstaRadaId="@v.Id">
+                          >
                             Pošalji zahtjev
                         </a>
                     </div>

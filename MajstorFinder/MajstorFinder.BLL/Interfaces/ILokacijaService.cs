@@ -19,5 +19,6 @@ public interface ILokacijaService
     Task<bool> UpdateAsync(int id, Lokacija lokacija);
     Task<bool> DeleteAsync(int id);
 
+    Task<List<Lokacija>> GetByIdsAsync(IEnumerable<int> ids);
 
 }

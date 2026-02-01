@@ -37,19 +37,19 @@ namespace MajstorFinder.WebApp.Controllers
             if (vrstaRadaId.HasValue)
             {
                 var vrsta = vrste.FirstOrDefault(v => v.Id == vrstaRadaId.Value);
-                if (vrsta != null)
-                    tvrtke = tvrtke.Where(t => t.Id == vrsta.TvrtkaId).ToList();
-                else
-                    tvrtke = new List<MajstorFinder.DAL.Models.Tvrtka>();
+                tvrtke = (vrsta == null)
+                    ? new List<MajstorFinder.DAL.Models.Tvrtka>()
+                    : tvrtke.Where(t => t.Id == vrsta.TvrtkaId).ToList();
             }
 
-            // filter po lokaciji: treba relacija tvrtka-lokacija
+            // filter po lokaciji: relacija tvrtka-lokacija
             if (lokacijaId.HasValue)
             {
+                // ISPRAVNO: trebaš TVRTKA ID-eve za odabranu lokaciju
                 var tvrtkaIds = await _tvrtkaLokacije.GetLokacijeIdsForTvrtkaAsync(lokacijaId.Value);
                 tvrtke = tvrtke.Where(t => tvrtkaIds.Contains(t.Id)).ToList();
             }
-            
+
             // map u VM (dok ne uvedemo AutoMapper)
             var vm = new BrowseVm
             {
@@ -63,21 +63,24 @@ namespace MajstorFinder.WebApp.Controllers
             return View(vm);
         }
 
+
         // KLIJENT: detalji tvrtke + vrste rada + lokacije
         public async Task<IActionResult> Details(int id)
         {
             var tvrtka = await _tvrtke.GetByIdAsync(id);
             if (tvrtka == null) return NotFound();
 
-            var vrste = await _vrste.GetByTvrtkaAsync(id);
+            // map u VM (mora odgovarati @model u viewu)
+            var vm = new TvrtkaVm
+            {
+                Id = tvrtka.Id,
+                Name = tvrtka.Name,
+                Description = tvrtka.Description,
+                Phone = tvrtka.Phone,
+                Email = tvrtka.Email
+            };
 
-            var lokacijaIds = await _tvrtkaLokacije.GetLokacijeIdsForTvrtkaAsync(id);
-            var lokacije = await _lokacije.GetByIdAsync(lokacijaIds);
-
-            ViewBag.Vrste = vrste.Select(ToVrstaRadaVm).ToList();
-            ViewBag.Lokacije = lokacije.Select(ToLokacijaVm).ToList();
-
-            return View(ToTvrtkaVm(tvrtka));
+            return View(vm);
         }
 
         // ===== map metode (privremeno) =====

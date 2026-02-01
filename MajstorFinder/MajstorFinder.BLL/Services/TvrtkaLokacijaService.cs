@@ -108,12 +108,15 @@ namespace MajstorFinder.BLL.Services
                 .ToListAsync();
         }
 
-        public async Task<List<int>> GetLokacijeIdsForTvrtkaAsync(int tvrtkaId)
+        public async Task<List<int>> GetLokacijeIdsForTvrtkaAsync(int lokacijaId)
         {
-            return await _db.Set<Dictionary<string, object>>("TvrtkaLokacija")
-                .Where(x => (int)x["TvrtkaId"] == tvrtkaId)
-                .Select(x => (int)x["LokacijaId"])
+   
+            return await _db.Set<TvrtkaLokacija>()
+                .Where(x => x.LokacijaId == lokacijaId)
+                .Select(x => x.TvrtkaId)
+                .Distinct()
                 .ToListAsync();
         }
     }
-}
+    }
+

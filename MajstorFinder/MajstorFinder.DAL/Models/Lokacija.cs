@@ -8,6 +8,6 @@ public partial class Lokacija
 
     public string Name { get; set; } = null!;
 
-    public virtual ICollection<Tvrtka> Tvrtkas { get; set; } = new List<Tvrtka>();
+   // public virtual ICollection<Tvrtka> Tvrtkas { get; set; } = new List<Tvrtka>();
     public virtual ICollection<TvrtkaLokacija> TvrtkaLokacijas { get; set; } = new List<TvrtkaLokacija>();
 }

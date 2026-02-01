@@ -23,6 +23,8 @@ public partial class MajstoriDbContext : DbContext
     public virtual DbSet<Tvrtka> Tvrtkas { get; set; } = null!;
     public virtual DbSet<VrstaRada> VrstaRadas { get; set; } = null!;
     public virtual DbSet<Zahtjev> Zahtjevs { get; set; } = null!;
+
+    //i ovo
     public virtual DbSet<TvrtkaLokacija> TvrtkaLokacijas { get; set;  } = null!;
 
     // ovo je rucno
@@ -86,6 +88,7 @@ public partial class MajstoriDbContext : DbContext
             modelBuilder.Entity<TvrtkaLokacija>(entity =>
             {
                 entity.ToTable("TvrtkaLokacija");
+
                 entity.HasKey(x => new { x.TvrtkaId, x.LokacijaId });
 
                 entity.HasOne(x => x.Tvrtka)
@@ -98,6 +101,7 @@ public partial class MajstoriDbContext : DbContext
                     .HasForeignKey(x => x.LokacijaId)
                     .HasConstraintName("FK_TvrtkaLokacija_Lokacija");
             });
+
         });
 
         modelBuilder.Entity<VrstaRada>(entity =>

@@ -72,5 +72,14 @@ public class LokacijaService : ILokacijaService
         return true;
     }
 
-    
+    public async Task<List<Lokacija>> GetByIdsAsync(IEnumerable<int> ids)
+    {
+        var list = ids?.Distinct().ToList() ?? new List<int>();
+        if (list.Count == 0) return new List<Lokacija>();
+
+        return await _db.Lokacijas
+            .Where(x => list.Contains(x.Id))
+            .OrderBy(x => x.Name)
+            .ToListAsync();
+    }
 }
