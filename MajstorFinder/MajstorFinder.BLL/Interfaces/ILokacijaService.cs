@@ -18,4 +18,6 @@ public interface ILokacijaService
     Task<Lokacija> CreateAsync(Lokacija lokacija);
     Task<bool> UpdateAsync(int id, Lokacija lokacija);
     Task<bool> DeleteAsync(int id);
+
+
 }

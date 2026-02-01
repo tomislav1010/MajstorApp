@@ -18,6 +18,7 @@ namespace MajstorFinder.BLL.Interfaces
         Task<bool> UpdateAsync(int id, Tvrtka tvrtka);
         Task<bool> DeleteAsync(int id);
         Task<List<Lokacija>> GetLokacijeAsync(int tvrtkaId); 
+
     }
 }
 

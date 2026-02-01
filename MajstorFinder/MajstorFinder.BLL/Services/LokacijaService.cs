@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MajstorFinder.BLL.Interfaces;
-using MajstorFinder.DAL.DBC;     // promijeni ako treba
+using MajstorFinder.DAL.DBC;     
 using MajstorFinder.DAL.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -71,4 +71,6 @@ public class LokacijaService : ILokacijaService
         await _db.SaveChangesAsync();
         return true;
     }
+
+    
 }

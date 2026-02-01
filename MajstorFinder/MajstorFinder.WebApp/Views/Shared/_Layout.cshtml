@@ -7,6 +7,7 @@
 
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/MajstorFinder.WebApp.styles.css" asp-append-version="true" />
 </head>
 <body>
@@ -17,63 +18,83 @@
     }
 
     <header>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <nav class="navbar navbar-expand-lg navbar-custom">
             <div class="container">
-                <a class="navbar-brand" asp-controller="Home" asp-action="Index">MajstorFinder</a>
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                    <span class="brand-icon">MF</span>
+                    <span class="brand-text">MajstorFinder</span>
+                </a>
 
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
                 <div class="collapse navbar-collapse" id="nav">
-                    <ul class="navbar-nav me-auto">
-                        <!-- KLIJENT -->
+                    <ul class="navbar-nav nav-main">
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Browse" asp-action="Index">Pretraga</a>
+                            <a class="nav-link" asp-controller="Browse" asp-action="Index">
+                                <span class="nav-icon">🔍</span> Pretraga
+                            </a>
                         </li>
 
                         @if (isLoggedIn)
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Zahtjev" asp-action="Moji">Moji zahtjevi</a>
+                                <a class="nav-link" asp-controller="Zahtjev" asp-action="Moji">
+                                    <span class="nav-icon">📋</span> Moji zahtjevi
+                                </a>
                             </li>
                         }
 
-                        <!-- ADMIN -->
                         @if (isAdmin)
                         {
+                            <li class="nav-item nav-divider"></li>
+                            <li class="nav-item nav-label">Admin</li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Tvrtka" asp-action="Index">Tvrtke</a>
+                                <a class="nav-link" asp-controller="Tvrtka" asp-action="Index">
+                                    <span class="nav-icon">🏢</span> Tvrtke
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="VrstaRada" asp-action="Index">Vrste rada</a>
+                                <a class="nav-link" asp-controller="VrstaRada" asp-action="Index">
+                                    <span class="nav-icon">🛠️</span> Vrste rada
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Lokacija" asp-action="Index">Lokacije</a>
+                                <a class="nav-link" asp-controller="Lokacija" asp-action="Index">
+                                    <span class="nav-icon">📍</span> Lokacije
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Zahtjev" asp-action="Index">Svi zahtjevi</a>
+                                <a class="nav-link" asp-controller="Zahtjev" asp-action="Index">
+                                    <span class="nav-icon">📑</span> Svi zahtjevi
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="User" asp-action="Create">+ Korisnik</a>
+                                <a class="nav-link nav-add-user" asp-controller="User" asp-action="Create">
+                                    <span class="nav-icon">➕</span> Korisnik
+                                </a>
                             </li>
                         }
                     </ul>
 
-                    <ul class="navbar-nav">
+                    <ul class="navbar-nav nav-user">
                         @if (isLoggedIn)
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Profile" asp-action="Index">Profil</a>
+                                <a class="nav-link nav-profile" asp-controller="Profile" asp-action="Index">
+                                    <div class="avatar-circle">P</div>
+                                    Profil
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Auth" asp-action="Logout">Odjava</a>
+                                <a class="nav-link nav-logout" asp-controller="Auth" asp-action="Logout">Odjava</a>
                             </li>
                         }
                         else
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Auth" asp-action="Login">Prijava</a>
+                                <a class="nav-link nav-login" asp-controller="Auth" asp-action="Login">Prijava</a>
                             </li>
                         }
                     </ul>
@@ -88,9 +109,15 @@
         </main>
     </div>
 
-    <footer class="border-top footer text-muted mt-5">
-        <div class="container py-3">
-            &copy; 2025 - MajstorFinder
+    <footer class="footer-custom">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <span class="brand-icon">MF</span>
+                    <span class="brand-text">MajstorFinder</span>
+                </div>
+                <p class="footer-copy">&copy; 2025 - MajstorFinder. Svi pravi zadržani.</p>
+            </div>
         </div>
     </footer>
 
@@ -98,6 +125,5 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
-
 </body>
 </html>

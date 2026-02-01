@@ -7,7 +7,7 @@ namespace MajstorFinder.DAL.DBC;
 
 public partial class MajstoriDbContext : DbContext
 {
-    // private DbSet<Lokacija> lokacijas;
+     //private DbSet<Lokacija> lokacijas;
 
     public MajstoriDbContext()
     {
@@ -23,8 +23,9 @@ public partial class MajstoriDbContext : DbContext
     public virtual DbSet<Tvrtka> Tvrtkas { get; set; } = null!;
     public virtual DbSet<VrstaRada> VrstaRadas { get; set; } = null!;
     public virtual DbSet<Zahtjev> Zahtjevs { get; set; } = null!;
+    public virtual DbSet<TvrtkaLokacija> TvrtkaLokacijas { get; set;  } = null!;
 
-    // Manually added entities (not scaffolded)
+    // ovo je rucno
     public DbSet<Log> Logs { get; set; } = null!;
     public DbSet<AppUser> AppUsers { get; set; } = null!;
 
@@ -68,20 +69,35 @@ public partial class MajstoriDbContext : DbContext
             entity.Property(e => e.Phone).HasMaxLength(50);
 
             // M:N Tvrtka <-> Lokacija through table TvrtkaLokacija
-            entity.HasMany(d => d.Lokacijas).WithMany(p => p.Tvrtkas)
-                .UsingEntity<Dictionary<string, object>>(
-                    "TvrtkaLokacija",
-                    r => r.HasOne<Lokacija>().WithMany()
-                        .HasForeignKey("LokacijaId")
-                        .HasConstraintName("FK_TvrtkaLokacija_Lokacija"),
-                    l => l.HasOne<Tvrtka>().WithMany()
-                        .HasForeignKey("TvrtkaId")
-                        .HasConstraintName("FK_TvrtkaLokacija_Tvrtka"),
-                    j =>
-                    {
-                        j.HasKey("TvrtkaId", "LokacijaId");
-                        j.ToTable("TvrtkaLokacija");
-                    });
+            /* entity.HasMany(d => d.Lokacijas).WithMany(p => p.Tvrtkas)
+                 .UsingEntity<Dictionary<string, object>>(
+                     "TvrtkaLokacija",
+                     r => r.HasOne<Lokacija>().WithMany()
+                         .HasForeignKey("LokacijaId")
+                         .HasConstraintName("FK_TvrtkaLokacija_Lokacija"),
+                     l => l.HasOne<Tvrtka>().WithMany()
+                         .HasForeignKey("TvrtkaId")
+                         .HasConstraintName("FK_TvrtkaLokacija_Tvrtka"),
+                     j =>
+                     {
+                         j.HasKey("TvrtkaId", "LokacijaId");
+                         j.ToTable("TvrtkaLokacija");
+                     });*/
+            modelBuilder.Entity<TvrtkaLokacija>(entity =>
+            {
+                entity.ToTable("TvrtkaLokacija");
+                entity.HasKey(x => new { x.TvrtkaId, x.LokacijaId });
+
+                entity.HasOne(x => x.Tvrtka)
+                    .WithMany(t => t.TvrtkaLokacijas)
+                    .HasForeignKey(x => x.TvrtkaId)
+                    .HasConstraintName("FK_TvrtkaLokacija_Tvrtka");
+
+                entity.HasOne(x => x.Lokacija)
+                    .WithMany(l => l.TvrtkaLokacijas)
+                    .HasForeignKey(x => x.LokacijaId)
+                    .HasConstraintName("FK_TvrtkaLokacija_Lokacija");
+            });
         });
 
         modelBuilder.Entity<VrstaRada>(entity =>

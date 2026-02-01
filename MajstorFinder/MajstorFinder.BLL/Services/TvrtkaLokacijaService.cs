@@ -6,7 +6,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
+
+
+
+
+using MajstorFinder.BLL.Interfaces;
+using MajstorFinder.DAL.DBC;
+using MajstorFinder.DAL.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace MajstorFinder.BLL.Services
 {
@@ -17,33 +24,96 @@ namespace MajstorFinder.BLL.Services
 
         public async Task<List<Lokacija>> GetLokacijeForTvrtkaAsync(int tvrtkaId)
         {
-            return await _db.Tvrtkas
-                .Where(t => t.Id == tvrtkaId)
-                .SelectMany(t => t.Lokacijas)
+            // vrati lokacije za tvrtku preko join tablice
+            return await _db.TvrtkaLokacijas
+                .Where(x => x.TvrtkaId == tvrtkaId)
+                .Select(x => x.Lokacija)          // radi ako imaš navigation Lokacija
+                .OrderBy(l => l.Name)
                 .ToListAsync();
+        }
+
+        public async Task AddAsync(int tvrtkaId, int lokacijaId)
+        {
+            // spriječi duplikate
+            bool exists = await _db.TvrtkaLokacijas
+                .AnyAsync(x => x.TvrtkaId == tvrtkaId && x.LokacijaId == lokacijaId);
+
+            if (exists) return;
+
+            _db.TvrtkaLokacijas.Add(new TvrtkaLokacija
+            {
+                TvrtkaId = tvrtkaId,
+                LokacijaId = lokacijaId
+            });
+
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task RemoveAsync(int tvrtkaId, int lokacijaId)
+        {
+            var link = await _db.TvrtkaLokacijas
+                .FirstOrDefaultAsync(x => x.TvrtkaId == tvrtkaId && x.LokacijaId == lokacijaId);
+
+            if (link == null) return;
+
+            _db.TvrtkaLokacijas.Remove(link);
+            await _db.SaveChangesAsync();
         }
 
         public async Task SetLokacijeForTvrtkaAsync(int tvrtkaId, IEnumerable<int> lokacijaIds)
         {
-            var tvrtka = await _db.Tvrtkas
-                .Include(t => t.Lokacijas)
-                .FirstOrDefaultAsync(t => t.Id == tvrtkaId);
+            // target set (što korisnik želi)
+            var desired = (lokacijaIds ?? Array.Empty<int>())
+                .Where(id => id > 0)
+                .Distinct()
+                .ToHashSet();
 
-            if (tvrtka == null) return;
-
-            var desired = lokacijaIds.Distinct().ToHashSet();
-
-            // učitaj sve lokacije koje trebaju biti vezane
-            var lokacije = await _db.Lokacijas
-                .Where(l => desired.Contains(l.Id))
+            // current set (što je u bazi)
+            var current = await _db.TvrtkaLokacijas
+                .Where(x => x.TvrtkaId == tvrtkaId)
+                .Select(x => x.LokacijaId)
                 .ToListAsync();
 
-            // resetiraj veze (najjednostavnije)
-            tvrtka.Lokacijas.Clear();
-            foreach (var l in lokacije)
-                tvrtka.Lokacijas.Add(l);
+            var currentSet = current.ToHashSet();
+
+            // ADD: desired - current
+            foreach (var lokId in desired.Except(currentSet))
+            {
+                _db.TvrtkaLokacijas.Add(new TvrtkaLokacija
+                {
+                    TvrtkaId = tvrtkaId,
+                    LokacijaId = lokId
+                });
+            }
+
+            // REMOVE: current - desired
+            var toRemoveIds = currentSet.Except(desired).ToList();
+            if (toRemoveIds.Count > 0)
+            {
+                var removeLinks = await _db.TvrtkaLokacijas
+                    .Where(x => x.TvrtkaId == tvrtkaId && toRemoveIds.Contains(x.LokacijaId))
+                    .ToListAsync();
+
+                _db.TvrtkaLokacijas.RemoveRange(removeLinks);
+            }
 
             await _db.SaveChangesAsync();
+        }
+
+        public async Task<List<TvrtkaLokacija>> GetByIdsAsync(int tvrtkaId, IEnumerable<int> lokacijasIds)
+        {
+            var ids = lokacijasIds?.Distinct().ToList() ?? new List<int>();
+            return await _db.TvrtkaLokacijas
+                .Where(x => x.TvrtkaId == tvrtkaId)
+                .ToListAsync();
+        }
+
+        public async Task<List<int>> GetLokacijeIdsForTvrtkaAsync(int tvrtkaId)
+        {
+            return await _db.Set<Dictionary<string, object>>("TvrtkaLokacija")
+                .Where(x => (int)x["TvrtkaId"] == tvrtkaId)
+                .Select(x => (int)x["LokacijaId"])
+                .ToListAsync();
         }
     }
 }
