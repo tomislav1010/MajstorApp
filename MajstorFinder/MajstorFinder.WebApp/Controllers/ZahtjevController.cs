@@ -1,8 +1,10 @@
 ﻿using MajstorFinder.BLL.DTOs;
 using MajstorFinder.BLL.Interfaces;
-using MajstorFinder.BLL.Services; // ili .Services (ovisno gdje ti je interface)
+using MajstorFinder.BLL.Services; 
 using MajstorFinder.WebApp.Models;
 using Microsoft.AspNetCore.Mvc;
+
+
 
 namespace MajstorFinder.WebApp.Controllers
 {
@@ -22,26 +24,22 @@ namespace MajstorFinder.WebApp.Controllers
         private int CurrentUserId => HttpContext.Session.GetInt32("userId") ?? 0;
         private bool IsAdmin => HttpContext.Session.GetString("isAdmin") == "1";
 
+        // =========================
         // KLIJENT: moji zahtjevi
+        // View: Views/Zahtjev/Moji.cshtml
+        // =========================
         [HttpGet]
-        public async Task<IActionResult> Moj()
+        public async Task<IActionResult> Moji()
         {
             if (CurrentUserId == 0) return RedirectToAction("Login", "Auth");
 
             var list = await _zahtjevi.GetByKorisnikAsync(CurrentUserId);
-            return View(list);
-        }
 
-        // KLIJENT: create forma
-        public async Task<IActionResult> Moji()
-        {
-            int korisnikId = HttpContext.Session.GetInt32("userId") ?? 0;
-            if (korisnikId == 0) return RedirectToAction("Login", "Auth");
+            var tvrtke = (await _tvrtke.GetAllAsync(null, 1, 1000))
+                .ToDictionary(x => x.Id, x => x.Name);
 
-            var list = await _zahtjevi.GetByKorisnikAsync(korisnikId);
-
-            var tvrtke = (await _tvrtke.GetAllAsync(null, 1, 100)).ToDictionary(x => x.Id, x => x.Name);
-            var vrste = (await _vrste.GetAllAsync(null, 1, 100)).ToDictionary(x => x.Id, x => x.Name);
+            var vrste = (await _vrste.GetAllAsync(null, 1, 1000))
+                .ToDictionary(x => x.Id, x => x.Name);
 
             var vm = list.Select(z => new ZahtjevVm
             {
@@ -59,12 +57,40 @@ namespace MajstorFinder.WebApp.Controllers
             return View(vm);
         }
 
-        // KLIJENT: create submit
+        // =========================
+        // KLIJENT: GET create forma
+        // View: Views/Zahtjev/Create.cshtml
+        // =========================
+        [HttpGet]
+        public async Task<IActionResult> Create(int tvrtkaId, int? vrstaRadaId)
+        {
+            if (CurrentUserId == 0) return RedirectToAction("Login", "Auth");
+
+            if (tvrtkaId <= 0) return BadRequest("TvrtkaId je obavezan.");
+
+            ViewBag.TvrtkaId = tvrtkaId;
+            ViewBag.Vrste = await _vrste.GetByTvrtkaAsync(tvrtkaId);
+
+            return View(new CreateZahtjevDto
+            {
+                TvrtkaId = tvrtkaId,
+                VrstaRadaId = vrstaRadaId ?? 0
+            });
+        }
+
+        // =========================
+        // KLIJENT: POST create submit
+        // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateZahtjevDto dto)
         {
             if (CurrentUserId == 0) return RedirectToAction("Login", "Auth");
+
+            // ako nemaš Required na DTO, ovo osigura minimum validacije
+            if (dto.TvrtkaId <= 0) ModelState.AddModelError("", "Tvrtka je obavezna.");
+            if (dto.VrstaRadaId <= 0) ModelState.AddModelError("", "Vrsta rada je obavezna.");
+            if (string.IsNullOrWhiteSpace(dto.Description)) ModelState.AddModelError(nameof(dto.Description), "Opis je obavezan.");
 
             if (!ModelState.IsValid)
             {
@@ -74,19 +100,25 @@ namespace MajstorFinder.WebApp.Controllers
             }
 
             await _zahtjevi.CreateAsync(CurrentUserId, dto);
-            return RedirectToAction(nameof(Moj));
+            return RedirectToAction(nameof(Moji));
         }
 
+        // =========================
         // ADMIN: svi zahtjevi
-        public async Task<IActionResult> Index()
+        // View: Views/Zahtjev/AdminIndex.cshtml
+        // =========================
+        [HttpGet]
+        public async Task<IActionResult> AdminIndex()
         {
-            int korisnikId = HttpContext.Session.GetInt32("userId") ?? 0;
-            if (korisnikId == 0) return RedirectToAction("Login", "Auth");
+            if (!IsAdmin) return Forbid();
 
-            var list = await _zahtjevi.GetByKorisnikAsync(korisnikId);
+            var list = await _zahtjevi.GetAllAsync();
 
-            var tvrtke = (await _tvrtke.GetAllAsync(null, 1, 100)).ToDictionary(x => x.Id, x => x.Name);
-            var vrste = (await _vrste.GetAllAsync(null, 1, 100)).ToDictionary(x => x.Id, x => x.Name);
+            var tvrtke = (await _tvrtke.GetAllAsync(null, 1, 1000))
+                .ToDictionary(x => x.Id, x => x.Name);
+
+            var vrste = (await _vrste.GetAllAsync(null, 1, 1000))
+                .ToDictionary(x => x.Id, x => x.Name);
 
             var vm = list.Select(z => new ZahtjevVm
             {
@@ -104,29 +136,58 @@ namespace MajstorFinder.WebApp.Controllers
             return View(vm);
         }
 
+        // (Ako baš želiš da /Zahtjev/Index radi kao admin lista)
+        [HttpGet]
+        public IActionResult Index() => RedirectToAction(nameof(AdminIndex));
+
+        // =========================
         // ADMIN: promjena statusa
+        // =========================
         [HttpPost]
-        public async Task<IActionResult> UpdateStatus(int id, UpdateZahtjevStatusDto dto)
+        public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateZahtjevStatusDto dto)
         {
             if (!IsAdmin) return Forbid();
-            if (string.IsNullOrWhiteSpace(dto.Status)) return BadRequest("Status je obavezan.");
+            if (dto == null || string.IsNullOrWhiteSpace(dto.Status))
+                return BadRequest("Status je obavezan.");
 
             await _zahtjevi.UpdateStatusAsync(id, dto.Status);
             return Ok();
         }
 
+        // =========================
         // ADMIN: delete
+        // =========================
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
             if (!IsAdmin) return Forbid();
-            await _zahtjevi.DeleteAsync(id);
-            return RedirectToAction(nameof(Index));
-        }
-    }
 
-    public class UpdateZahtjevStatusDto
-    {
-        public string Status { get; set; } = "";
+            await _zahtjevi.DeleteAsync(id);
+            return RedirectToAction(nameof(AdminIndex));
+        }
+
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangeStatus(int id, string status)
+        {
+            if (!IsAdmin) return Forbid();
+
+            if (string.IsNullOrWhiteSpace(status))
+            {
+                TempData["Err"] = "Status je obavezan.";
+                return RedirectToAction(nameof(AdminIndex));
+            }
+
+            await _zahtjevi.UpdateStatusAsync(id, status);
+            return RedirectToAction(nameof(AdminIndex));
+        }
+
+        public class UpdateZahtjevStatusDto
+        {
+            public string Status { get; set; } = "";
+        }
     }
 }

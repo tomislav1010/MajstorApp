@@ -7,7 +7,7 @@
     <div class="alert alert-danger">@TempData["Err"]</div>
 }
 
-<table class="table table-striped">
+<table class="table table-striped align-middle">
     <thead>
         <tr>
             <th>ID</th>
@@ -20,24 +20,54 @@
     <tbody>
         @foreach (var z in Model)
         {
-            <tr>
+            <tr id="row-@z.Id">
                 <td>@z.Id</td>
                 <td>@z.Description</td>
-                <td>@z.Status</td>
-                <td>@z.DateCreated</td>
+
                 <td>
-                    <form method="post" asp-action="ChangeStatus">
-                        <input type="hidden" name="id" value="@z.Id" />
-                        <select name="status" class="form-select form-select-sm d-inline w-auto">
-                            <option selected="@(z.Status == "Poslano")">Poslano</option>
-                            <option selected="@(z.Status == "U obradi")">U obradi</option>
-                            <option selected="@(z.Status == "Odobreno")">Odobreno</option>
-                            <option selected="@(z.Status == "Odbijeno")">Odbijeno</option>
-                        </select>
-                        <button class="btn btn-sm btn-primary">Spremi</button>
-                    </form>
+                    <span class="badge bg-secondary" id="status-text-@z.Id">@z.Status</span>
+                </td>
+
+                <td>@z.DateCreated.ToString("dd.MM.yyyy HH:mm")</td>
+
+                <td class="d-flex gap-2">
+                    <select class="form-select form-select-sm w-auto" id="status-@z.Id">
+                        <option value="Poslano" selected="@(z.Status == "Poslano")">Poslano</option>
+                        <option value="U obradi" selected="@(z.Status == "U obradi")">U obradi</option>
+                        <option value="Odobreno" selected="@(z.Status == "Odobreno")">Odobreno</option>
+                        <option value="Odbijeno" selected="@(z.Status == "Odbijeno")">Odbijeno</option>
+                    </select>
+
+                    <button type="button"
+                            class="btn btn-sm btn-primary btn-save-status"
+                            data-id="@z.Id">
+                        Spremi
+                    </button>
                 </td>
             </tr>
         }
     </tbody>
 </table>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll(".btn-save-status").forEach(btn => {
+            btn.addEventListener("click", async () => {
+                const id = btn.dataset.id;
+                const status = document.getElementById(`status-${id}`).value;
+
+                        const res = await fetch(`/Zahtjev/UpdateStatus?id=${id}`, {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ Status: status })
+                            });
+
+                if (res.ok) {
+                    document.getElementById(`status-text-${id}`).innerText = status;
+                } else {
+                    alert("Greška: " + await res.text());
+                }
+            });
+        });
+    </script>
+}

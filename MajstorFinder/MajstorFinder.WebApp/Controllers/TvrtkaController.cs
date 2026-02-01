@@ -3,6 +3,7 @@ using MajstorFinder.WebApp.Models;
 using Microsoft.AspNetCore.Mvc;
 using MajstorFinder.BLL.Interfaces;
 using MajstorFinder.DAL.Models;
+using MajstorFinder.BLL.DTOs;
 
 
 namespace MajstorFinder.WebApp.Controllers
@@ -163,6 +164,30 @@ namespace MajstorFinder.WebApp.Controllers
             await _tvrtkaLokacije.SetLokacijeForTvrtkaAsync(model.TvrtkaId, selectedIds);
 
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SetLokacijeAjax([FromBody] TvrtkaLokacijeAjaxDto dto)
+        {
+            // ako imaš IsAdmin property kao u drugim controllerima:
+            // if (!IsAdmin) return Forbid();
+
+            if (dto == null) return BadRequest("Nema podataka.");
+            if (dto.TvrtkaId <= 0) return BadRequest("TvrtkaId je obavezan.");
+
+            await _tvrtkaLokacije.SetLokacijeForTvrtkaAsync(
+                dto.TvrtkaId,
+                dto.LokacijaIds ?? new List<int>()
+            );
+
+            return Ok();
+        }
+
+
+        public class TvrtkaLokacijeAjaxDto
+        {
+            public int TvrtkaId { get; set; }
+            public List<int>? LokacijaIds { get; set; }
         }
     }
 }

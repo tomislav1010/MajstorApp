@@ -17,6 +17,36 @@ namespace MajstorFinder.BLL.Services
         public UserService(MajstoriDbContext db) {
             _db = db;
         }
+
+        public async Task<bool> CreateAsync(CreateUserDto dto)
+        {
+            if (await _db.AppUsers.AnyAsync(u =>
+                u.Email == dto.Email || u.Username == dto.Username))
+                return false;
+
+            PasswordHasher.Create(
+                dto.Password,
+                out byte[] hash,
+                out byte[] salt,
+                out int iterations
+            );
+
+            var user = new AppUser
+            {
+                Username = dto.Username,
+                Email = dto.Email,
+                PasswordHash = hash,        // byte[]
+                PasswordSalt = salt,        // byte[]
+                Iterations = iterations,
+                CreatedAt = DateTime.Now,
+                IsAdmin = dto.IsAdmin
+            };
+
+            _db.AppUsers.Add(user);
+            await _db.SaveChangesAsync();
+            return true;
+        }
+
         public  Task<AppUser?> GetByIdAsync(int id)
         =>_db.AppUsers.FirstOrDefaultAsync(x=>x.Id==id);
         
