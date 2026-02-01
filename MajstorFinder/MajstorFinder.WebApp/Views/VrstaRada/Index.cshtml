@@ -1,33 +1,40 @@
 ﻿@model List<VrstaRadaVm>
+
 @{
     var tvrtke = (List<TvrtkaVm>)ViewBag.Tvrtke;
-    int? selected = ViewBag.SelectedTvrtkaId as int?;
+    int? selectedTvrtkaId = ViewBag.SelectedTvrtkaId as int?;
+
+    int currentPage = ViewBag.Page == null ? 1 : (int)ViewBag.Page;
+    int totalPages = ViewBag.TotalPages == null ? 1 : (int)ViewBag.TotalPages;
+    string q = ViewBag.Q as string ?? "";
 }
 
 <h2>Vrste rada</h2>
 
 @if (TempData["Err"] != null)
 {
-    <p style="color:red">@TempData["Err"]</p>
+    <div class="alert alert-danger">@TempData["Err"]</div>
 }
 
-<form method="get">
-    <label>Filter po tvrtki:</label>
+<form method="get" class="mb-3">
+    <label>Tvrtka:</label>
     <select name="tvrtkaId">
         <option value="">-- sve --</option>
         @foreach (var t in tvrtke)
         {
-            <option value="@t.Id" selected="@(selected == t.Id)">@t.Name</option>
+            <option value="@t.Id" selected="@(selectedTvrtkaId == t.Id)">
+                @t.Name
+            </option>
         }
     </select>
 
-    <input name="q" value="@ViewBag.Q" placeholder="Pretraži..." />
+    <input type="text" name="q" value="@q" placeholder="Pretraži..." />
 
     <button type="submit">Primijeni</button>
-    <a asp-action="Create">+ Nova vrsta rada</a>
+    <a asp-action="Create" class="btn btn-sm btn-primary">+ Nova vrsta rada</a>
 </form>
 
-<table>
+<table class="table table-striped">
     <thead>
         <tr>
             <th>Naziv</th>
@@ -36,61 +43,71 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var v in Model)
-{
-        <tr id="row-@v.Id">
-            <td>@v.Name</td>
-            <td>@v.TvrtkaName</td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@v.Id">Uredi</a>
-
-                <button type="button" class="btn-delete" data-id="@v.Id">
-                    Obriši
-                </button>
-            </td>
-        </tr>
-}
+        @foreach (var v in Model)
+        {
+            <tr id="row-@v.Id">
+                <td>@v.Name</td>
+                <td>@v.TvrtkaName</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@v.Id">Uredi</a>
+                    |
+                    <button type="button"
+                            class="btn-delete"
+                            data-id="@v.Id">
+                        Obriši
+                    </button>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
 
-@{
-    int page = ViewBag.Page;
-    int totalPages = ViewBag.TotalPages;
-    string q = ViewBag.Q;
+@if (totalPages > 1)
+{
+    <div class="mt-3">
+        @if (currentPage > 1)
+        {
+            <a asp-action="Index"
+               asp-route-page="@(currentPage - 1)"
+               asp-route-q="@q"
+               asp-route-tvrtkaId="@selectedTvrtkaId">
+                ← Prethodna
+            </a>
+        }
+
+        <span class="mx-2">
+            Stranica @(currentPage) / @(totalPages)
+        </span>
+
+        @if (currentPage < totalPages)
+        {
+            <a asp-action="Index"
+               asp-route-page="@(currentPage + 1)"
+               asp-route-q="@q"
+               asp-route-tvrtkaId="@selectedTvrtkaId">
+                Sljedeća →
+            </a>
+        }
+    </div>
 }
 
-<div>
-    @if (page > 1)
-    {
-        <a asp-action="Index"
-           asp-route-page="@(page - 1)"
-           asp-route-q="@q"
-           asp-route-tvrtkaId="@ViewBag.SelectedTvrtkaId">← Prethodna</a>
-    }
-
-    <span>Stranica @@page / @totalPages</span>
-
-    @if (page < totalPages)
-    {
-        <a asp-action="Index"
-           asp-route-page="@(page + 1)"
-           asp-route-q="@q"
-           asp-route-tvrtkaId="@ViewBag.SelectedTvrtkaId">Sljedeća →</a>
-    }
-</div>
-
 @section Scripts {
-<script>
-document.querySelectorAll(".btn-delete").forEach(btn => {
-    btn.addEventListener("click", async () => {
-        const id = btn.dataset.id;
-        if (!confirm("Obrisati?")) return;
+    <script>
+        document.querySelectorAll(".btn-delete").forEach(btn => {
+            btn.addEventListener("click", async () => {
+                const id = btn.dataset.id;
+                if (!confirm("Obrisati vrstu rada?")) return;
 
-        const res = await fetch(`/VrstaRada/DeleteAjax/${id}`, { method: "DELETE" });
+                const res = await fetch(`/VrstaRada/DeleteAjax/${id}`, {
+                    method: "DELETE"
+                });
 
-        if (res.ok) document.getElementById(`row-${id}`)?.remove();
-        else alert("Greška: " + await res.text());
-    });
-});
-</script>
+                if (res.ok) {
+                    document.getElementById(`row-${id}`)?.remove();
+                } else {
+                    alert("Greška pri brisanju.");
+                }
+            });
+        });
+    </script>
 }

@@ -9,7 +9,8 @@
         public List<VrstaRadaVm> VrsteRada { get; set; } = new();
         public List<TvrtkaVm> Tvrtke { get; set; } = new();
 
-        public int Page { get; set; } = 1;
-        public int TotalPages { get; set; } = 1;
+        public int Page { get; set; } 
+        public int PageSize { get; set; }
+        public int TotalPages { get; set; } 
     }
 }

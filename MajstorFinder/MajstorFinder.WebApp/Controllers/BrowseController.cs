@@ -30,15 +30,15 @@ namespace MajstorFinder.WebApp.Controllers
 
         [HttpGet]
         public async Task<IActionResult> Index(
-            int? lokacijaId,
-            int? vrstaRadaId,
-            int page = 1,
-            int pageSize = 6)
+    int? lokacijaId,
+    int? vrstaRadaId,
+    int page = 1,
+    int pageSize = 6)
         {
             if (page < 1) page = 1;
             if (pageSize < 1) pageSize = 6;
 
-            // dropdown podaci
+            // dropdown podaci (uzimaš sve)
             var lokacije = await _lokacije.GetAllAsync(q: null, page: 1, pageSize: 1000);
             var vrste = await _vrste.GetAllAsync(tvrtkaId: null, page: 1, pageSize: 1000);
 
@@ -57,6 +57,7 @@ namespace MajstorFinder.WebApp.Controllers
             // FILTER: lokacija (tvrtke koje rade na toj lokaciji)
             if (lokacijaId.HasValue)
             {
+                // OVO treba vraćati TVRTKA ID-eve za lokaciju
                 var tvrtkaIds = await _tvrtkaLokacije.GetLokacijeIdsForTvrtkaAsync(lokacijaId.Value);
                 tvrtke = tvrtke.Where(t => tvrtkaIds.Contains(t.Id)).ToList();
             }
@@ -64,7 +65,7 @@ namespace MajstorFinder.WebApp.Controllers
             // PAGING
             int totalItems = tvrtke.Count;
             int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
-            if (totalPages == 0) totalPages = 1;
+            if (totalPages < 1) totalPages = 1;
             if (page > totalPages) page = totalPages;
 
             var pageItems = tvrtke
@@ -81,6 +82,7 @@ namespace MajstorFinder.WebApp.Controllers
                 Tvrtke = pageItems.Select(ToTvrtkaVm).ToList(),
 
                 Page = page,
+                PageSize = pageSize,
                 TotalPages = totalPages
             };
 

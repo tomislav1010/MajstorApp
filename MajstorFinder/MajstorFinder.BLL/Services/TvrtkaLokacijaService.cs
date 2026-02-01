@@ -9,12 +9,6 @@ using Microsoft.EntityFrameworkCore;
 
 
 
-
-using MajstorFinder.BLL.Interfaces;
-using MajstorFinder.DAL.DBC;
-using MajstorFinder.DAL.Models;
-using Microsoft.EntityFrameworkCore;
-
 namespace MajstorFinder.BLL.Services
 {
     public class TvrtkaLokacijaService : ITvrtkaLokacijaService

@@ -57,6 +57,13 @@
                 </td>
             </tr>
         }
+
+        @if (Model.Tvrtke == null || Model.Tvrtke.Count == 0)
+        {
+            <tr>
+                <td colspan="4" class="text-center text-muted py-4">Nema rezultata.</td>
+            </tr>
+        }
     </tbody>
 </table>
 
@@ -67,7 +74,7 @@
         <ul class="pagination justify-content-center">
 
             <!-- PRETHODNA -->
-            <li class="page-item @(Model.Page == 1 ? "disabled" : "")">
+            <li class="page-item @(Model.Page <= 1 ? "disabled" : "")">
                 <a class="page-link"
                    asp-action="Index"
                    asp-route-page="@(Model.Page - 1)"
@@ -92,7 +99,7 @@
             }
 
             <!-- SLJEDEĆA -->
-            <li class="page-item @(Model.Page == Model.TotalPages ? "disabled" : "")">
+            <li class="page-item @(Model.Page >= Model.TotalPages ? "disabled" : "")">
                 <a class="page-link"
                    asp-action="Index"
                    asp-route-page="@(Model.Page + 1)"
