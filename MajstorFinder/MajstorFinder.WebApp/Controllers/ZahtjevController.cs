@@ -1,6 +1,7 @@
 ﻿using MajstorFinder.BLL.DTOs;
 using MajstorFinder.BLL.Interfaces;
 using MajstorFinder.BLL.Services; // ili .Services (ovisno gdje ti je interface)
+using MajstorFinder.WebApp.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MajstorFinder.WebApp.Controllers
@@ -32,15 +33,30 @@ namespace MajstorFinder.WebApp.Controllers
         }
 
         // KLIJENT: create forma
-        [HttpGet]
-        public async Task<IActionResult> Create(int tvrtkaId)
+        public async Task<IActionResult> Moji()
         {
-            if (CurrentUserId == 0) return RedirectToAction("Login", "Auth");
+            int korisnikId = HttpContext.Session.GetInt32("userId") ?? 0;
+            if (korisnikId == 0) return RedirectToAction("Login", "Auth");
 
-            ViewBag.TvrtkaId = tvrtkaId;
-            ViewBag.Vrste = await _vrste.GetByTvrtkaAsync(tvrtkaId);
+            var list = await _zahtjevi.GetByKorisnikAsync(korisnikId);
 
-            return View(new CreateZahtjevDto { TvrtkaId = tvrtkaId });
+            var tvrtke = (await _tvrtke.GetAllAsync(null, 1, 100)).ToDictionary(x => x.Id, x => x.Name);
+            var vrste = (await _vrste.GetAllAsync(null, 1, 100)).ToDictionary(x => x.Id, x => x.Name);
+
+            var vm = list.Select(z => new ZahtjevVm
+            {
+                Id = z.Id,
+                KorisnikId = z.KorisnikId,
+                TvrtkaId = z.TvrtkaId,
+                VrstaRadaId = z.VrstaRadaId,
+                Description = z.Description,
+                Status = z.Status,
+                DateCreated = z.DateCreated,
+                TvrtkaName = tvrtke.TryGetValue(z.TvrtkaId, out var tn) ? tn : "",
+                VrstaRadaName = vrste.TryGetValue(z.VrstaRadaId, out var vn) ? vn : ""
+            }).ToList();
+
+            return View(vm);
         }
 
         // KLIJENT: create submit
@@ -62,13 +78,30 @@ namespace MajstorFinder.WebApp.Controllers
         }
 
         // ADMIN: svi zahtjevi
-        [HttpGet]
         public async Task<IActionResult> Index()
         {
-            if (!IsAdmin) return Forbid();
+            int korisnikId = HttpContext.Session.GetInt32("userId") ?? 0;
+            if (korisnikId == 0) return RedirectToAction("Login", "Auth");
 
-            var list = await _zahtjevi.GetAllAsync();
-            return View(list);
+            var list = await _zahtjevi.GetByKorisnikAsync(korisnikId);
+
+            var tvrtke = (await _tvrtke.GetAllAsync(null, 1, 100)).ToDictionary(x => x.Id, x => x.Name);
+            var vrste = (await _vrste.GetAllAsync(null, 1, 100)).ToDictionary(x => x.Id, x => x.Name);
+
+            var vm = list.Select(z => new ZahtjevVm
+            {
+                Id = z.Id,
+                KorisnikId = z.KorisnikId,
+                TvrtkaId = z.TvrtkaId,
+                VrstaRadaId = z.VrstaRadaId,
+                Description = z.Description,
+                Status = z.Status,
+                DateCreated = z.DateCreated,
+                TvrtkaName = tvrtke.TryGetValue(z.TvrtkaId, out var tn) ? tn : "",
+                VrstaRadaName = vrste.TryGetValue(z.VrstaRadaId, out var vn) ? vn : ""
+            }).ToList();
+
+            return View(vm);
         }
 
         // ADMIN: promjena statusa

@@ -1,0 +1,54 @@
+﻿@model List<ZahtjevVm>
+
+<h2>Svi zahtjevi (admin)</h2>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Tvrtka</th>
+            <th>Vrsta rada</th>
+            <th>Opis</th>
+            <th>Status</th>
+            <th>Datum</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var z in Model)
+        {
+            <tr id="row-@z.Id">
+                <td>@z.TvrtkaName</td>
+                <td>@z.VrstaRadaName</td>
+                <td>@z.Description</td>
+                <td>
+                    <select class="form-select status-select"
+                            data-id="@z.Id">
+                        <option selected>@z.Status</option>
+                        <option>U obradi</option>
+                        <option>Završeno</option>
+                        <option>Odbijeno</option>
+                    </select>
+                </td>
+                <td>@z.DateCreated.ToString("dd.MM.yyyy")</td>
+                <td></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll(".status-select").forEach(sel => {
+            sel.addEventListener("change", async () => {
+                const id = sel.dataset.id;
+                const status = sel.value;
+
+                await fetch(`/Zahtjev/UpdateStatus?id=${id}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ status })
+                });
+            });
+        });
+    </script>
+}

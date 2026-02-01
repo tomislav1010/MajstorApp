@@ -11,8 +11,9 @@
 </head>
 <body>
     @{
-        var jwt = Context.Session.GetString("jwt");
-        bool isLoggedIn = !string.IsNullOrEmpty(jwt);
+        var userId = Context.Session.GetInt32("userId");
+        var isAdmin = Context.Session.GetString("isAdmin") == "1";
+        var isLoggedIn = userId.HasValue && userId.Value > 0;
     }
 
     <header>
@@ -30,12 +31,16 @@
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Browse" asp-action="Index">Pretraga</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Zahtjev" asp-action="Moji">Moji zahtjevi</a>
-                        </li>
 
-                        <!-- ADMIN (samo kad je logiran) -->
                         @if (isLoggedIn)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Zahtjev" asp-action="Moji">Moji zahtjevi</a>
+                            </li>
+                        }
+
+                        <!-- ADMIN -->
+                        @if (isAdmin)
                         {
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Tvrtka" asp-action="Index">Tvrtke</a>
@@ -46,12 +51,21 @@
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Lokacija" asp-action="Index">Lokacije</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Zahtjev" asp-action="Index">Svi zahtjevi</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="User" asp-action="Create">+ Korisnik</a>
+                            </li>
                         }
                     </ul>
 
                     <ul class="navbar-nav">
                         @if (isLoggedIn)
                         {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Profile" asp-action="Index">Profil</a>
+                            </li>
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Auth" asp-action="Logout">Odjava</a>
                             </li>
