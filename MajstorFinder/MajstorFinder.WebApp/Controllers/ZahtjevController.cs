@@ -24,10 +24,7 @@ namespace MajstorFinder.WebApp.Controllers
         private int CurrentUserId => HttpContext.Session.GetInt32("userId") ?? 0;
         private bool IsAdmin => HttpContext.Session.GetString("isAdmin") == "1";
 
-        // =========================
-        // KLIJENT: moji zahtjevi
-        // View: Views/Zahtjev/Moji.cshtml
-        // =========================
+        
         [HttpGet]
         public async Task<IActionResult> Moji()
         {
@@ -57,10 +54,7 @@ namespace MajstorFinder.WebApp.Controllers
             return View(vm);
         }
 
-        // =========================
-        // KLIJENT: GET create forma
-        // View: Views/Zahtjev/Create.cshtml
-        // =========================
+ 
         [HttpGet]
         public async Task<IActionResult> Create(int tvrtkaId, int? vrstaRadaId)
         {
@@ -78,9 +72,7 @@ namespace MajstorFinder.WebApp.Controllers
             });
         }
 
-        // =========================
-        // KLIJENT: POST create submit
-        // =========================
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateZahtjevDto dto)
@@ -103,10 +95,7 @@ namespace MajstorFinder.WebApp.Controllers
             return RedirectToAction(nameof(Moji));
         }
 
-        // =========================
-        // ADMIN: svi zahtjevi
-        // View: Views/Zahtjev/AdminIndex.cshtml
-        // =========================
+
         [HttpGet]
         public async Task<IActionResult> AdminIndex()
         {
@@ -136,13 +125,10 @@ namespace MajstorFinder.WebApp.Controllers
             return View(vm);
         }
 
-        // (Ako baš želiš da /Zahtjev/Index radi kao admin lista)
         [HttpGet]
         public IActionResult Index() => RedirectToAction(nameof(AdminIndex));
 
-        // =========================
-        // ADMIN: promjena statusa
-        // =========================
+
         [HttpPost]
         public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateZahtjevStatusDto dto)
         {

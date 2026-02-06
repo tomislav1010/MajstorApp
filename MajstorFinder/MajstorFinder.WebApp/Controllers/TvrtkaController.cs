@@ -8,7 +8,6 @@ using MajstorFinder.BLL.DTOs;
 
 namespace MajstorFinder.WebApp.Controllers
 {
-    // AdminController ti i dalje štiti admin dio (session/role)
     public class TvrtkaController : AdminController
     {
         private readonly ITvrtkaService _tvrtkaService;

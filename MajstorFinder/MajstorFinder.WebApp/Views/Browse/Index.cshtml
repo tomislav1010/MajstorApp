@@ -406,8 +406,7 @@
         </table>
     </div>
 
-    @if (Model.TotalPages > 1)
-    {
+   
         <div class="pagination-wrapper">
             <ul class="pagination">
                 <li class="page-item @(Model.Page <= 1 ? "disabled" : "")">
@@ -447,6 +446,6 @@
                 Stranica <strong>@Model.Page</strong> od <strong>@Model.TotalPages</strong>
             </p>
         </div>
-    }
+    
 
 </div>
