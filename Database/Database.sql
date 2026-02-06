@@ -2,7 +2,6 @@
    MAJSTORFINDER - FINAL DB SCRIPT
    (validator friendly)
    ========================= */
-   create database Applikacija
 /* =========================
    TVRTKA
    ========================= */
