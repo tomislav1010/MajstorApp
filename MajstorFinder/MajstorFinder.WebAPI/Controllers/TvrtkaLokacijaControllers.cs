@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MajstorFinder.DAL.DbContext;
 using MajstorFinder.DAL.DBC;
+using MajstorFinder.DAL.Models;
+using System.Linq;
 
 namespace MajstorFinder.WebAPI.Controllers
 {
@@ -14,23 +15,28 @@ namespace MajstorFinder.WebAPI.Controllers
 
         // POST: /api/tvrtka-lokacija?tvrtkaId=1&lokacijaId=2
         [HttpPost]
-        public IActionResult Add(int tvrtkaId, int lokacijaId)
+        public IActionResult Add([FromQuery] int tvrtkaId, [FromQuery] int lokacijaId)
         {
-            var tvrtka = _context.Tvrtkas
-                .Include(t => t.Lokacijas)
-                .SingleOrDefault(t => t.Id == tvrtkaId);
-
-            if (tvrtka == null)
+            // provjere da postoje
+            if (!_context.Tvrtkas.Any(t => t.Id == tvrtkaId))
                 return NotFound("TvrtkaId ne postoji.");
 
-            var lokacija = _context.Lokacijas.Find(lokacijaId);
-            if (lokacija == null)
+            if (!_context.Lokacijas.Any(l => l.Id == lokacijaId))
                 return NotFound("LokacijaId ne postoji.");
 
-            if (tvrtka.Lokacijas.Any(l => l.Id == lokacijaId))
+            // provjera duplikata veze
+            bool exists = _context.TvrtkaLokacijas
+                .Any(x => x.TvrtkaId == tvrtkaId && x.LokacijaId == lokacijaId);
+
+            if (exists)
                 return Conflict("Veza već postoji.");
 
-            tvrtka.Lokacijas.Add(lokacija);
+            _context.TvrtkaLokacijas.Add(new TvrtkaLokacija
+            {
+                TvrtkaId = tvrtkaId,
+                LokacijaId = lokacijaId
+            });
+
             _context.SaveChanges();
 
             return Ok("Veza dodana.");
@@ -38,23 +44,37 @@ namespace MajstorFinder.WebAPI.Controllers
 
         // DELETE: /api/tvrtka-lokacija?tvrtkaId=1&lokacijaId=2
         [HttpDelete]
-        public IActionResult Remove(int tvrtkaId, int lokacijaId)
+        public IActionResult Remove([FromQuery] int tvrtkaId, [FromQuery] int lokacijaId)
         {
-            var tvrtka = _context.Tvrtkas
-                .Include(t => t.Lokacijas)
-                .SingleOrDefault(t => t.Id == tvrtkaId);
+            var link = _context.TvrtkaLokacijas
+                .FirstOrDefault(x => x.TvrtkaId == tvrtkaId && x.LokacijaId == lokacijaId);
 
-            if (tvrtka == null)
-                return NotFound("TvrtkaId ne postoji.");
-
-            var lokacija = tvrtka.Lokacijas.SingleOrDefault(l => l.Id == lokacijaId);
-            if (lokacija == null)
+            if (link == null)
                 return NotFound("Veza ne postoji.");
 
-            tvrtka.Lokacijas.Remove(lokacija);
+            _context.TvrtkaLokacijas.Remove(link);
             _context.SaveChanges();
 
             return NoContent();
+        }
+
+        // (opcionalno) GET: /api/tvrtka-lokacija?tvrtkaId=1
+        // vrati sve lokacije za tvrtku
+        [HttpGet]
+        public IActionResult GetForTvrtka([FromQuery] int tvrtkaId)
+        {
+            if (!_context.Tvrtkas.Any(t => t.Id == tvrtkaId))
+                return NotFound("TvrtkaId ne postoji.");
+
+            var lokacije = _context.TvrtkaLokacijas
+                .AsNoTracking()
+                .Where(x => x.TvrtkaId == tvrtkaId)
+                .Include(x => x.Lokacija)
+                .OrderBy(x => x.Lokacija.Name)
+                .Select(x => new { x.LokacijaId, x.Lokacija.Name })
+                .ToList();
+
+            return Ok(lokacije);
         }
     }
 }

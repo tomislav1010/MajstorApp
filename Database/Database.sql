@@ -2,7 +2,7 @@
    MAJSTORFINDER - FINAL DB SCRIPT
    (validator friendly)
    ========================= */
-
+   create database Applikacija
 /* =========================
    TVRTKA
    ========================= */
@@ -61,7 +61,8 @@ CREATE TABLE AppUser (
     PasswordHash VARBINARY(32) NOT NULL,
     PasswordSalt VARBINARY(16) NOT NULL,
     Iterations INT NOT NULL,
-    CreatedAt DATETIME NOT NULL CONSTRAINT DF_AppUser_CreatedAt DEFAULT (GETDATE())
+    CreatedAt DATETIME NOT NULL CONSTRAINT DF_AppUser_CreatedAt DEFAULT (GETDATE()),
+    Isadmin Bit not null default 0
 );
 
 /* =========================
@@ -94,3 +95,15 @@ CREATE TABLE Logs (
     Level NVARCHAR(50) NOT NULL,
     Message NVARCHAR(500) NOT NULL
 );
+
+
+/* =========================
+   Korisnik
+   ========================= */
+create table Korisnik(
+Id int identity(1,1) primary key,
+Name nvarchar(100) not null,
+Email Nvarchar(100) not null unique,
+Phone nvarchar(50) not null
+);
+

@@ -1,6 +1,5 @@
 ﻿using MajstorFinder.WebAPI.DTOs;
 using Microsoft.AspNetCore.Mvc;
-using MajstorFinder.DAL.DbContext;
 using MajstorFinder.DAL.DBC;
 
 namespace MajstorFinder.WebAPI.Controllers

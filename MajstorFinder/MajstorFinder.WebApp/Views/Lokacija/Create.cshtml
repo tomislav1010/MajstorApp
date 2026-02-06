@@ -1,19 +1,236 @@
 ﻿@model LokacijaVm
 
-<h2>Nova lokacija</h2>
+@{
+    ViewData["Title"] = "Nova lokacija";
+}
 
-<form method="post">
-    <div asp-validation-summary="All"></div>
+<style>
+    .page-wrapper {
+        max-width: 580px;
+        margin: 0 auto;
+        padding: 32px 0 48px;
+    }
 
-    <div>
-        <label>Naziv</label>
-        <input asp-for="Name" />
-        <span asp-validation-for="Name"></span>
+    .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 28px;
+        gap: 16px;
+    }
+
+    .page-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .title-icon {
+        width: 38px;
+        height: 38px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #64748b;
+        text-decoration: none;
+        padding: 8px 14px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        background: white;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+        .back-link:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+    .card {
+        background: white;
+        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.07);
+        overflow: hidden;
+    }
+
+    .card-body {
+        padding: 28px 24px;
+    }
+
+    .validation-summary-errors {
+        margin-bottom: 20px;
+        padding: 12px 16px;
+        background: #fef2f2;
+        border-left: 4px solid #ef4444;
+        border-radius: 8px;
+    }
+
+        .validation-summary-errors ul {
+            list-style: none;
+            color: #dc2626;
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        .validation-summary-errors li {
+            margin-bottom: 4px;
+        }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: #f9fafb;
+            color: #1e293b;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+            .form-group input:focus {
+                border-color: #667eea;
+                background: white;
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            }
+
+    .text-danger {
+        display: block;
+        color: #ef4444;
+        font-size: 13px;
+        margin-top: 6px;
+        font-weight: 500;
+    }
+
+    .card-footer {
+        padding: 18px 24px;
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .btn-cancel {
+        padding: 10px 20px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #64748b;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+        .btn-cancel:hover {
+            border-color: #94a3b8;
+            color: #334155;
+        }
+
+    .btn-save {
+        padding: 10px 28px;
+        font-size: 14px;
+        font-weight: 600;
+        color: white;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        box-shadow: 0 3px 10px rgba(102, 126, 234, 0.35);
+    }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(102, 126, 234, 0.45);
+        }
+
+        .btn-save:active {
+            transform: translateY(0);
+        }
+
+    @@media (max-width: 640px) {
+        .page-wrapper {
+            padding: 20px 0 32px;
+        }
+
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .card-body {
+            padding: 20px 16px;
+        }
+
+        .card-footer {
+            padding: 14px 16px;
+        }
+    }
+</style>
+
+<div class="page-wrapper">
+
+    <div class="page-header">
+        <h2 class="page-title">
+            <span class="title-icon">➕</span>
+            Nova lokacija
+        </h2>
+        <a asp-action="Index" class="back-link">← Nazad</a>
     </div>
 
-    <button type="submit">Spremi</button>
-    <a asp-action="Index">Nazad</a>
-</form>
+    <div class="card">
+        <form method="post">
+            <div class="card-body">
+                <div asp-validation-summary="All" class="text-danger validation-summary-errors"></div>
+
+                <div class="form-group">
+                    <label asp-for="Name">Naziv</label>
+                    <input asp-for="Name" type="text" placeholder="Unesite naziv lokacije..." />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="card-footer">
+                <a asp-action="Index" class="btn-cancel">Odustani</a>
+                <button type="submit" class="btn-save">Kreiraj lokaciju</button>
+            </div>
+        </form>
+    </div>
+
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

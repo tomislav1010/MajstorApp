@@ -18,6 +18,6 @@ public partial class Tvrtka
 
     public virtual ICollection<Zahtjev> Zahtjevs { get; set; } = new List<Zahtjev>();
 
-    //public virtual ICollection<Lokacija> Lokacijas { get; set; } = new List<Lokacija>();
+   // public virtual ICollection<Lokacija> Lokacijas { get; set; } = new List<Lokacija>();
     public virtual ICollection<TvrtkaLokacija>TvrtkaLokacijas { get; set; }=new List<TvrtkaLokacija>();
 }

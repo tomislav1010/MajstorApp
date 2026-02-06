@@ -10,8 +10,14 @@ builder.Services.AddControllersWithViews();
 //builder.Services.AddSession();
 
 // DbContext (RWA baza)
-builder.Services.AddDbContext<MajstoriDbContext>(opt =>
-    opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+//builder.Services.AddDbContext<MajstoriDbContext>(opt =>
+//    opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+
+builder.Services.AddDbContext<MajstoriDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+           .EnableSensitiveDataLogging()
+           .LogTo(Console.WriteLine, LogLevel.Information));
 
 // BLL servisi
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -22,6 +28,7 @@ builder.Services.AddScoped<IZahtjevService, ZahtjevService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITvrtkaLokacijaService, TvrtkaLokacijaService>();
 builder.Services.AddScoped<IKorisnikService, KorisnikService>();
+
 
 
 builder.Services.AddDistributedMemoryCache();

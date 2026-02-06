@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
-using MajstorFinder.DAL.DbContext;
 using MajstorFinder.DAL.DBC;
 
 var builder = WebApplication.CreateBuilder(args);

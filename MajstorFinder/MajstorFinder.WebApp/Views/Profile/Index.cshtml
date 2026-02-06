@@ -1,38 +1,251 @@
-﻿@model MajstorFinder.BLL.DTOs.UpdateUserDto
+﻿
+@model MajstorFinder.BLL.DTOs.UpdateUserDto
 
-<h2>Moj profil</h2>
+@{
+    ViewData["Title"] = "Moj profil";
+}
 
-<div class="mb-3">
-    <label class="form-label">Username</label>
-    <input class="form-control" id="username" value="@Model.Username" />
+<style>
+    .page-wrapper {
+        max-width: 580px;
+        margin: 0 auto;
+        padding: 32px 0 48px;
+    }
+
+    .page-header {
+        margin-bottom: 28px;
+    }
+
+    .page-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .title-icon {
+        width: 38px;
+        height: 38px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+
+    .card {
+        background: white;
+        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.07);
+        overflow: hidden;
+    }
+
+    .card-body {
+        padding: 28px 24px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 8px;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 15px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        background: #f9fafb;
+        color: #1e293b;
+        transition: all 0.2s ease;
+        outline: none;
+    }
+
+    .form-group input:focus {
+        border-color: #667eea;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .card-footer {
+        padding: 18px 24px;
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .btn-save {
+        padding: 10px 28px;
+        font-size: 14px;
+        font-weight: 600;
+        color: white;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        box-shadow: 0 3px 10px rgba(102, 126, 234, 0.35);
+    }
+
+    .btn-save:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(102, 126, 234, 0.45);
+    }
+
+    .btn-save:active {
+        transform: translateY(0);
+    }
+
+    .btn-save:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .status-message {
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+    }
+
+    .status-message.success {
+        color: #059669;
+        background: #d1fae5;
+    }
+
+    .status-message.error {
+        color: #dc2626;
+        background: #fee2e2;
+    }
+
+    .status-message.hidden {
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    @@media (max-width: 640px) {
+        .page-wrapper {
+            padding: 20px 0 32px;
+        }
+
+        .card-body {
+            padding: 20px 16px;
+        }
+
+        .card-footer {
+            padding: 14px 16px;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .btn-save {
+            width: 100%;
+        }
+
+        .status-message {
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="page-wrapper">
+
+    <div class="page-header">
+        <h2 class="page-title">
+            <span class="title-icon">👤</span>
+            Moj profil
+        </h2>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" value="@Model.Username" placeholder="Unesite username..." />
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" value="@Model.Email" placeholder="Unesite email..." />
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <button class="btn-save" id="btnSave">Spremi promjene</button>
+            <span class="status-message hidden" id="msg"></span>
+        </div>
+    </div>
+
 </div>
-
-<div class="mb-3">
-    <label class="form-label">Email</label>
-    <input class="form-control" id="email" value="@Model.Email" />
-</div>
-
-<button class="btn btn-primary" id="btnSave">Spremi</button>
-<span class="ms-2" id="msg"></span>
 
 @section Scripts {
     <script>
-        document.getElementById("btnSave").addEventListener("click", async () => {
+        const btnSave = document.getElementById("btnSave");
+        const msg = document.getElementById("msg");
+
+        btnSave.addEventListener("click", async () => {
             const payload = {
-                username: document.getElementById("username").value,
-                email: document.getElementById("email").value
+                username: document.getElementById("username").value.trim(),
+                email: document.getElementById("email").value.trim()
             };
 
-                    const res = await fetch("/Profile/UpdateAjax", { body: JSON.stringify(AppUserVm) })
-        , {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
+            // Validation
+            if (!payload.username || !payload.email) {
+                showMessage("error", "❌ Sva polja su obavezna");
+                return;
+            }
 
-            const msg = document.getElementById("msg");
-            if (res.ok) { msg.innerText = "✅ Spremljeno"; msg.className="text-success"; }
-            else { msg.innerText = "❌ " + await res.text(); msg.className="text-danger"; }
+            // Disable button
+            btnSave.disabled = true;
+            btnSave.textContent = "Spremanje...";
+
+            try {
+                const res = await fetch("/Profile/UpdateAjax", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    showMessage("success", "✅ Uspješno spremljeno");
+                } else {
+                    const errorText = await res.text();
+                    showMessage("error", "❌ " + errorText);
+                }
+            } catch (error) {
+                showMessage("error", "❌ Greška pri spremanju");
+            } finally {
+                btnSave.disabled = false;
+                btnSave.textContent = "Spremi promjene";
+            }
         });
+
+        function showMessage(type, text) {
+            msg.textContent = text;
+            msg.className = "status-message " + type;
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                msg.classList.add("hidden");
+            }, 3000);
+        }
     </script>
-}
+    }

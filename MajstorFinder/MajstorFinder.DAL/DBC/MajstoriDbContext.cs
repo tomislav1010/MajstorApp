@@ -36,11 +36,8 @@ public partial class MajstoriDbContext : DbContext
         modelBuilder.Entity<Korisnik>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Korisnik__3214EC070132BD28");
-
             entity.ToTable("Korisnik");
-
             entity.HasIndex(e => e.Email, "UQ__Korisnik__A9D10534CDEDA70C").IsUnique();
-
             entity.Property(e => e.Email).HasMaxLength(100);
             entity.Property(e => e.Name).HasMaxLength(100);
             entity.Property(e => e.Phone).HasMaxLength(50);
@@ -49,65 +46,42 @@ public partial class MajstoriDbContext : DbContext
         modelBuilder.Entity<Lokacija>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Lokacija__3214EC071D5CC8F4");
-
             entity.ToTable("Lokacija");
-
             entity.HasIndex(e => e.Name, "UQ__Lokacija__737584F69576655F").IsUnique();
-
             entity.Property(e => e.Name).HasMaxLength(100);
         });
 
         modelBuilder.Entity<Tvrtka>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Tvrtka__3214EC07F8E9E346");
-
             entity.ToTable("Tvrtka");
-
             entity.HasIndex(e => e.Name, "UQ__Tvrtka__737584F65F117E69").IsUnique();
 
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.Email).HasMaxLength(100);
             entity.Property(e => e.Name).HasMaxLength(100);
             entity.Property(e => e.Phone).HasMaxLength(50);
+        });
 
-            // M:N Tvrtka <-> Lokacija through table TvrtkaLokacija
-            /* entity.HasMany(d => d.Lokacijas).WithMany(p => p.Tvrtkas)
-                 .UsingEntity<Dictionary<string, object>>(
-                     "TvrtkaLokacija",
-                     r => r.HasOne<Lokacija>().WithMany()
-                         .HasForeignKey("LokacijaId")
-                         .HasConstraintName("FK_TvrtkaLokacija_Lokacija"),
-                     l => l.HasOne<Tvrtka>().WithMany()
-                         .HasForeignKey("TvrtkaId")
-                         .HasConstraintName("FK_TvrtkaLokacija_Tvrtka"),
-                     j =>
-                     {
-                         j.HasKey("TvrtkaId", "LokacijaId");
-                         j.ToTable("TvrtkaLokacija");
-                     });*/
-            modelBuilder.Entity<TvrtkaLokacija>(entity =>
-            {
-                entity.ToTable("TvrtkaLokacija");
+        modelBuilder.Entity<TvrtkaLokacija>(entity =>
+        {
+            entity.ToTable("TvrtkaLokacija");
+            entity.HasKey(x => new { x.TvrtkaId, x.LokacijaId });
 
-                entity.HasKey(x => new { x.TvrtkaId, x.LokacijaId });
+            entity.HasOne(x => x.Tvrtka)
+                .WithMany(t => t.TvrtkaLokacijas)
+                .HasForeignKey(x => x.TvrtkaId)
+                .HasConstraintName("FK_TvrtkaLokacija_Tvrtka");
 
-                entity.HasOne(x => x.Tvrtka)
-                    .WithMany(t => t.TvrtkaLokacijas)
-                    .HasForeignKey(x => x.TvrtkaId)
-                    .HasConstraintName("FK_TvrtkaLokacija_Tvrtka");
-
-                entity.HasOne(x => x.Lokacija)
-                    .WithMany(l => l.TvrtkaLokacijas)
-                    .HasForeignKey(x => x.LokacijaId)
-                    .HasConstraintName("FK_TvrtkaLokacija_Lokacija");
-            });
-
+            entity.HasOne(x => x.Lokacija)
+                .WithMany(l => l.TvrtkaLokacijas)
+                .HasForeignKey(x => x.LokacijaId)
+                .HasConstraintName("FK_TvrtkaLokacija_Lokacija");
         });
 
         modelBuilder.Entity<VrstaRada>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__VrstaRad__3214EC079E864058");
-
             entity.ToTable("VrstaRada");
             entity.Property(e => e.Name).HasMaxLength(100);
 
@@ -119,12 +93,12 @@ public partial class MajstoriDbContext : DbContext
         modelBuilder.Entity<Zahtjev>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Zahtjev__3214EC0701684E8D");
-
             entity.ToTable("Zahtjev");
 
             entity.Property(e => e.DateCreated)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
+
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.Status).HasMaxLength(50);
 
@@ -144,7 +118,6 @@ public partial class MajstoriDbContext : DbContext
                 .HasConstraintName("FK_Zahtjev_VrstaRada");
         });
 
-        // Manual tables mapping
         modelBuilder.Entity<Log>(entity =>
         {
             entity.ToTable("Logs");
@@ -164,8 +137,8 @@ public partial class MajstoriDbContext : DbContext
 
             entity.Property(e => e.Username).HasMaxLength(50);
             entity.Property(e => e.Email).HasMaxLength(100);
-            entity.Property(e => e.PasswordHash).HasMaxLength(200);
-           // entity.Property(e => e.Role).HasMaxLength(20);
+            // nemoj stavljat HasMaxLength na byte[]:
+            // entity.Property(e => e.PasswordHash).HasMaxLength(200);
         });
 
         OnModelCreatingPartial(modelBuilder);
